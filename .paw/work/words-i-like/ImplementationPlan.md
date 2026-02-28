@@ -45,7 +45,7 @@ A fully functional PWA deployed to Azure with:
 ## Phase Status
 
 - [x] **Phase 1: Dev Harness** — Monorepo scaffold, quality gates, Docker environment, copilot-instructions.md
-- [ ] **Phase 2: Design System & Core UI Shell** — Typography, color tokens, input component, app shell with sticky header
+- [x] **Phase 2: Design System & Core UI Shell** — Typography, color tokens, input component, app shell with sticky header
 - [ ] **Phase 3: Word Entry & Dictionary Integration** — Word input, Free Dictionary API lookup, word card display with animations
 - [ ] **Phase 4: Local Persistence & Offline** — IndexedDB via Dexie.js, offline word saving, definition retry queue, PWA manifest
 - [ ] **Phase 5: Backend Foundation** — Fastify server, PostgreSQL schema, Prisma models, basic CRUD API
