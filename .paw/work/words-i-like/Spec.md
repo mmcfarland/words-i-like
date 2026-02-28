@@ -154,8 +154,8 @@ Acceptance Scenarios:
 ### Functional Requirements
 
 - FR-001: Accept word/phrase input (1-3 words) and save to local storage immediately on submit (Stories: P1-Capture)
-- FR-002: Look up word definitions from Free Dictionary API on submit, displaying all definitions with part-of-speech labels (Stories: P1-Capture, P1-Browse)
-- FR-003: Display word feed as scrollable list of collapsed cards showing word text and definition excerpt (Stories: P1-Browse)
+- FR-002: Look up word definitions from Free Dictionary API on submit, displaying all definitions with part-of-speech labels and pronunciation where available (Stories: P1-Capture, P1-Browse)
+- FR-003: Display word feed as a reverse-chronological scrollable list of collapsed cards showing word text and definition excerpt (Stories: P1-Browse)
 - FR-004: Support tap-to-expand/collapse on word cards, revealing full definitions, part-of-speech labels, and action buttons (Stories: P1-Browse)
 - FR-005: Persist all word data in IndexedDB for offline access and PWA functionality (Stories: P1-Offline)
 - FR-006: Transition input area to compact sticky header on scroll, restoring full size when scrolled to top (Stories: P1-Browse)
