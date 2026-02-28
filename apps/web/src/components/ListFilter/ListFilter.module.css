@@ -25,3 +25,25 @@
 .clearButton:hover {
   color: var(--color-text-primary);
 }
+
+.shareButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.shareButton:hover {
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+}
+
+.shareButton:disabled {
+  opacity: 0.5;
+}
