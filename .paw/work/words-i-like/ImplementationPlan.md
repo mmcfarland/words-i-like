@@ -51,8 +51,8 @@ A fully functional PWA deployed to Azure with:
 - [x] **Phase 5: Backend Foundation** — Fastify server, PostgreSQL schema, Prisma models, basic CRUD API
 - [x] **Phase 6: Auth & Sync** — Google OAuth, JWT sessions, sync engine, smart merge on first sign-in
 - [x] **Phase 7: Lists, Search & Organization** — List CRUD, word tagging, feed filtering, real-time search, bottom half-sheet UI
-- [ ] **Phase 8: AI Usage Examples** — Azure OpenAI integration, example generation endpoint, rate limiting, MSW stubs
-- [ ] **Phase 9: Sharing** — Public share links, read-only list view, share URL generation
+- [x] **Phase 8: AI Usage Examples** — Azure OpenAI integration, example generation endpoint, rate limiting, MSW stubs
+- [x] **Phase 9: Sharing** — Public share links, read-only list view, share URL generation
 - [ ] **Phase 10: Azure Infrastructure & CI/CD** — Bicep templates, GitHub Actions, staging + production environments
 - [ ] **Phase 11: PWA Polish & Visual Regression** — Service worker, offline indicators, performance optimization, visual regression baselines
 - [ ] **Phase 12: Documentation** — Docs.md, project documentation, copilot-instructions.md finalization
