@@ -4,7 +4,9 @@ import Fastify from 'fastify'
 import authPlugin from './plugins/auth'
 import { authRoutes } from './routes/auth'
 import { healthRoutes } from './routes/health'
+import { listRoutes } from './routes/lists'
 import { syncRoutes } from './routes/sync'
+import { wordListRoutes } from './routes/word-lists'
 import { wordRoutes } from './routes/words'
 
 export function buildApp() {
@@ -18,6 +20,8 @@ export function buildApp() {
   app.register(healthRoutes)
   app.register(authRoutes)
   app.register(wordRoutes, { prefix: '/api' })
+  app.register(listRoutes, { prefix: '/api' })
+  app.register(wordListRoutes, { prefix: '/api' })
   app.register(syncRoutes, { prefix: '/api' })
 
   return app

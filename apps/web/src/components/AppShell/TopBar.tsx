@@ -5,9 +5,11 @@ interface TopBarProps {
   user: UserProfile | null
   onSignIn: () => void
   onSignOut: () => void
+  onSearchClick?: () => void
+  onListClick?: () => void
 }
 
-export function TopBar({ user, onSignIn, onSignOut }: TopBarProps) {
+export function TopBar({ user, onSignIn, onSignOut, onSearchClick, onListClick }: TopBarProps) {
   return (
     <header className={styles.topbar}>
       <button
@@ -29,14 +31,14 @@ export function TopBar({ user, onSignIn, onSignOut }: TopBarProps) {
       </button>
 
       <div className={styles.actions}>
-        <button className={styles.iconButton} aria-label="Search" type="button">
+        <button className={styles.iconButton} aria-label="Search" type="button" onClick={onSearchClick}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
         </button>
 
-        <button className={styles.iconButton} aria-label="Lists" type="button">
+        <button className={styles.iconButton} aria-label="Lists" type="button" onClick={onListClick}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 6h18M3 12h18M3 18h18" />
           </svg>

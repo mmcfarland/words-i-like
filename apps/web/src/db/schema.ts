@@ -15,8 +15,22 @@ export interface WordRecord {
   dirty?: boolean
 }
 
+export interface ListRecord {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface WordListRecord {
+  wordId: string
+  listId: string
+}
+
 export class WordsDatabase extends Dexie {
   words!: EntityTable<WordRecord, 'id'>
+  lists!: EntityTable<ListRecord, 'id'>
+  wordLists!: EntityTable<WordListRecord, 'wordId'>
 
   constructor() {
     super('words-i-like')
@@ -25,6 +39,11 @@ export class WordsDatabase extends Dexie {
     })
     this.version(2).stores({
       words: 'id, text, createdAt, definitionStatus, dirty',
+    })
+    this.version(3).stores({
+      words: 'id, text, createdAt, definitionStatus, dirty',
+      lists: 'id, name, createdAt',
+      wordLists: '[wordId+listId], wordId, listId',
     })
   }
 }

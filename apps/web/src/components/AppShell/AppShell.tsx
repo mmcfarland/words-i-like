@@ -21,9 +21,11 @@ interface AppShellProps {
   user?: UserProfile | null
   onSignIn?: () => void
   onSignOut?: () => void
+  onSearchClick?: () => void
+  onListClick?: () => void
 }
 
-export function AppShell({ children, user, onSignIn, onSignOut }: AppShellProps) {
+export function AppShell({ children, user, onSignIn, onSignOut, onSearchClick, onListClick }: AppShellProps) {
   const [scrollState, setScrollState] = useState<ScrollState>({ isScrolled: false, scrollY: 0 })
   const mainRef = useRef<HTMLElement>(null)
 
@@ -43,7 +45,7 @@ export function AppShell({ children, user, onSignIn, onSignOut }: AppShellProps)
   return (
     <ScrollContext value={scrollState}>
       <div className={styles.shell}>
-        <TopBar user={user ?? null} onSignIn={onSignIn ?? (() => {})} onSignOut={onSignOut ?? (() => {})} />
+        <TopBar user={user ?? null} onSignIn={onSignIn ?? (() => {})} onSignOut={onSignOut ?? (() => {})} onSearchClick={onSearchClick} onListClick={onListClick} />
         <main ref={mainRef} className={styles.main} onScroll={handleScroll}>
           {children}
         </main>

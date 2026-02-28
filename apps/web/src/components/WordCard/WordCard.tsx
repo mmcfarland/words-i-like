@@ -8,6 +8,8 @@ interface WordCardProps {
   meanings: DictionaryMeaning[]
   pronunciation?: string
   definitionStatus: DefinitionStatus
+  wordId?: string
+  onAssignToList?: (wordId: string) => void
 }
 
 function getExcerpt(meanings: DictionaryMeaning[]): string {
@@ -17,7 +19,7 @@ function getExcerpt(meanings: DictionaryMeaning[]): string {
   return firstDef.length > 120 ? `${firstDef.slice(0, 117)}...` : firstDef
 }
 
-export function WordCard({ text, meanings, pronunciation, definitionStatus }: WordCardProps) {
+export function WordCard({ text, meanings, pronunciation, definitionStatus, wordId, onAssignToList }: WordCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const toggle = useCallback(() => setIsExpanded(prev => !prev), [])
   const excerpt = getExcerpt(meanings)
@@ -78,6 +80,22 @@ export function WordCard({ text, meanings, pronunciation, definitionStatus }: Wo
                 </ol>
               </div>
             ))}
+            {wordId && onAssignToList && (
+              <button
+                className={styles.listButton}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onAssignToList(wordId)
+                }}
+                type="button"
+                aria-label="Add to list"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18M3 12h18M3 18h18" />
+                </svg>
+                Add to list
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

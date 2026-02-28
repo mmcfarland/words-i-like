@@ -1,0 +1,111 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-5) var(--space-4) var(--space-6);
+  max-height: 60vh;
+  overflow-y: auto;
+  z-index: 101;
+}
+
+.handle {
+  width: 36px;
+  height: 4px;
+  background-color: var(--color-text-muted);
+  border-radius: var(--radius-full);
+  margin: 0 auto var(--space-4);
+  opacity: 0.3;
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  width: 100%;
+  text-align: left;
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+}
+
+.listItem:hover {
+  background-color: var(--color-bg);
+}
+
+.listItemActive {
+  composes: listItem;
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checkboxChecked {
+  composes: checkbox;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.createForm {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-bg);
+}
+
+.createInput {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.createInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.createButton {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background-color: var(--color-accent);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.createButton:disabled {
+  opacity: 0.5;
+}
