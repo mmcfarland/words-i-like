@@ -31,17 +31,17 @@ export function buildApp() {
   return app
 }
 
-const app = buildApp()
+if (!process.env.VITEST) {
+  const app = buildApp()
 
-async function start() {
-  const port = Number(process.env.PORT) || 3001
-  await app.listen({ port, host: '0.0.0.0' })
-  console.log(`Server listening on port ${port}`)
+  async function start() {
+    const port = Number(process.env.PORT) || 3001
+    await app.listen({ port, host: '0.0.0.0' })
+    console.log(`Server listening on port ${port}`)
+  }
+
+  start().catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
 }
-
-start().catch((err) => {
-  console.error(err)
-  process.exit(1)
-})
-
-export { app }

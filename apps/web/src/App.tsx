@@ -6,13 +6,13 @@ import { SearchOverlay } from './components/SearchOverlay'
 import { AuthTooltip } from './components/Tooltip'
 import { WordFeed } from './components/WordFeed'
 import { WordInput } from './components/WordInput'
+import { wordStore } from './db'
 import { useAuth } from './hooks/useAuth'
 import { useDefinitionRetry } from './hooks/useDefinitionRetry'
 import { useLists } from './hooks/useLists'
 import { useSearch } from './hooks/useSearch'
 import { useSync } from './hooks/useSync'
 import { useWordCollection } from './hooks/useWordCollection'
-import { wordStore } from './db'
 
 export function App() {
   const {
