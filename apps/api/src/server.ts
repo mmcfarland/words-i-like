@@ -2,9 +2,11 @@ import process from 'node:process'
 import cors from '@fastify/cors'
 import Fastify from 'fastify'
 import authPlugin from './plugins/auth'
+import { aiRoutes } from './routes/ai'
 import { authRoutes } from './routes/auth'
 import { healthRoutes } from './routes/health'
 import { listRoutes } from './routes/lists'
+import { shareRoutes } from './routes/share'
 import { syncRoutes } from './routes/sync'
 import { wordListRoutes } from './routes/word-lists'
 import { wordRoutes } from './routes/words'
@@ -23,6 +25,8 @@ export function buildApp() {
   app.register(listRoutes, { prefix: '/api' })
   app.register(wordListRoutes, { prefix: '/api' })
   app.register(syncRoutes, { prefix: '/api' })
+  app.register(aiRoutes, { prefix: '/api' })
+  app.register(shareRoutes)
 
   return app
 }

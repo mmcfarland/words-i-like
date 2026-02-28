@@ -8,9 +8,10 @@ interface WordFeedProps {
   expandedIds: Set<string>
   onToggle: (id: string) => void
   onAssignToList?: (wordId: string) => void
+  onExamplesGenerated?: (wordId: string, examples: string[]) => void
 }
 
-export function WordFeed({ words, expandedIds: _expandedIds, onToggle: _onToggle, onAssignToList }: WordFeedProps) {
+export function WordFeed({ words, expandedIds: _expandedIds, onToggle: _onToggle, onAssignToList, onExamplesGenerated }: WordFeedProps) {
   if (words.length === 0) {
     return null
   }
@@ -32,7 +33,9 @@ export function WordFeed({ words, expandedIds: _expandedIds, onToggle: _onToggle
               pronunciation={word.pronunciation}
               definitionStatus={word.definitionStatus}
               wordId={word.id}
+              examples={word.examples}
               onAssignToList={onAssignToList}
+              onExamplesGenerated={onExamplesGenerated}
             />
           </motion.div>
         ))}

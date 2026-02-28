@@ -12,6 +12,7 @@ import { useLists } from './hooks/useLists'
 import { useSearch } from './hooks/useSearch'
 import { useSync } from './hooks/useSync'
 import { useWordCollection } from './hooks/useWordCollection'
+import { wordStore } from './db'
 
 export function App() {
   const {
@@ -94,6 +95,11 @@ export function App() {
     setFilterByListId(null)
   }, [setFilterByListId])
 
+  const handleExamplesGenerated = useCallback(async (wordId: string, examples: string[]) => {
+    await wordStore.update(wordId, { examples })
+    refreshWords()
+  }, [refreshWords])
+
   const selectedList = lists.find(l => l.id === filterByListId) ?? null
 
   if (isLoading) {
@@ -122,6 +128,7 @@ export function App() {
         expandedIds={expandedIds}
         onToggle={toggleExpanded}
         onAssignToList={handleAssignToList}
+        onExamplesGenerated={handleExamplesGenerated}
       />
 
       {/* ListPicker for assigning a word to lists */}

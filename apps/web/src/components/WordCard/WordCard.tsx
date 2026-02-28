@@ -1,6 +1,8 @@
 import type { DefinitionStatus, DictionaryMeaning } from '@words/shared'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useState } from 'react'
+import { aiService } from '../../services/ai'
+import { authService } from '../../services/auth'
 import styles from './WordCard.module.css'
 
 interface WordCardProps {
@@ -9,7 +11,9 @@ interface WordCardProps {
   pronunciation?: string
   definitionStatus: DefinitionStatus
   wordId?: string
+  examples?: string[]
   onAssignToList?: (wordId: string) => void
+  onExamplesGenerated?: (wordId: string, examples: string[]) => void
 }
 
 function getExcerpt(meanings: DictionaryMeaning[]): string {
@@ -19,10 +23,32 @@ function getExcerpt(meanings: DictionaryMeaning[]): string {
   return firstDef.length > 120 ? `${firstDef.slice(0, 117)}...` : firstDef
 }
 
-export function WordCard({ text, meanings, pronunciation, definitionStatus, wordId, onAssignToList }: WordCardProps) {
+export function WordCard({ text, meanings, pronunciation, definitionStatus, wordId, examples: cachedExamples, onAssignToList, onExamplesGenerated }: WordCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [examples, setExamples] = useState<string[] | undefined>(cachedExamples)
+  const [loadingExamples, setLoadingExamples] = useState(false)
+  const [examplesError, setExamplesError] = useState<string | null>(null)
   const toggle = useCallback(() => setIsExpanded(prev => !prev), [])
   const excerpt = getExcerpt(meanings)
+
+  const handleGenerateExamples = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!wordId || loadingExamples)
+      return
+    setLoadingExamples(true)
+    setExamplesError(null)
+    try {
+      const result = await aiService.generateExamples(wordId)
+      setExamples(result.examples)
+      onExamplesGenerated?.(wordId, result.examples)
+    }
+    catch (err) {
+      setExamplesError(err instanceof Error ? err.message : 'Failed to generate examples')
+    }
+    finally {
+      setLoadingExamples(false)
+    }
+  }, [wordId, loadingExamples, onExamplesGenerated])
 
   return (
     <div
@@ -80,6 +106,35 @@ export function WordCard({ text, meanings, pronunciation, definitionStatus, word
                 </ol>
               </div>
             ))}
+            {examples && examples.length > 0 && (
+              <motion.div
+                className={styles.examplesSection}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <span className={styles.examplesLabel}>Examples</span>
+                <ul className={styles.examplesList}>
+                  {examples.map((ex, i) => (
+                    <li key={i} className={styles.exampleItem}>{ex}</li>
+                  ))}
+                </ul>
+              </motion.div>
+            )}
+            {wordId && authService.isAuthenticated() && !examples && (
+              <button
+                className={styles.generateButton}
+                onClick={handleGenerateExamples}
+                disabled={loadingExamples}
+                type="button"
+                aria-label="Generate examples"
+              >
+                {loadingExamples ? 'Generating…' : '✨ Generate examples'}
+              </button>
+            )}
+            {examplesError && (
+              <p className={styles.examplesError}>{examplesError}</p>
+            )}
             {wordId && onAssignToList && (
               <button
                 className={styles.listButton}
