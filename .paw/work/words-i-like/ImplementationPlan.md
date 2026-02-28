@@ -151,6 +151,7 @@ Establish the visual foundation: typography, color tokens, spacing scale, and th
   - CSS custom properties for the design system: color palette (soft pastels, lavender/sky blue tints), typography scale (Fraunces for words, Inter/DM Sans for UI), spacing scale, tinted shadow definitions
   - Global reset and base styles (no hard borders anywhere)
   - Animation utility classes and `prefers-reduced-motion` support
+  - **Animation disable flag** (`data-reduce-motion` attribute or React context) for Playwright visual/E2E tests — must be in place before Phase 3 animations are implemented to ensure testability from the start
   - Font loading strategy (Google Fonts or self-hosted)
 
 - **`apps/web/src/components/AppShell/`**:
@@ -196,30 +197,30 @@ Connect word input to the Free Dictionary API, display word cards with definitio
   - `definitionStatus` enum: `found | not_found | pending`
 
 - **`apps/web/src/services/`**:
-  - `dictionary.ts` — Free Dictionary API client. Handles JSON array response, 404 → `not_found` status, network errors → `pending` status. Client-direct (no backend proxy).
+  - `dictionary.ts` — Free Dictionary API client. Handles JSON array response, 404 → `not_found` status, 429 → exponential backoff retry with `pending` status, network errors → `pending` status. Client-direct (no backend proxy).
 
 - **`apps/web/src/components/WordCard/`**:
-  - `WordCard.tsx` — collapsed state (word in serif + definition excerpt) and expanded state (all definitions with part-of-speech labels, pronunciation, action button placeholders)
+  - `WordCard.tsx` — collapsed state (word in serif + definition excerpt, CSS line-clamp for long definitions) and expanded state (all definitions with part-of-speech labels, pronunciation, action button placeholders)
   - Tap to expand/collapse with smooth animation
   - Subtle separation between cards (spacing, soft tinted shadow, gentle background shift — no hard borders)
   - "No definition found" indicator for `not_found` status
 
 - **`apps/web/src/components/WordFeed/`**:
   - `WordFeed.tsx` — reverse-chronological scrollable list of `WordCard` components
-  - New word entry animation: slide-down from input area, definition fade-in with slight delay
+  - New word entry animation: slide-down from input area, definition fade-in with slight delay. Sequential animation queue for rapid word entry (each animates in order, not simultaneously)
   - Duplicate detection: if word text already exists, surface existing entry instead of creating new
 
 - **`apps/web/src/hooks/`**:
   - `useWordCollection.ts` — React hook managing in-memory word state (add, expand, collapse, duplicate check). Persistence hook comes in Phase 4.
 
-- **Unit tests**: Dictionary client (mock fetch for success, 404, network error), WordCard states, duplicate detection logic
+- **Unit tests**: Dictionary client (mock fetch for success, 404, 429 rate limit with backoff, network error), WordCard states, duplicate detection logic, animation queue for rapid entry
 - **E2E test**: Enter a word → verify card appears with definition text
 
 ### Success Criteria
 
 #### Automated Verification:
 - [ ] `pnpm check:all` passes
-- [ ] Dictionary client tests cover: successful lookup (JSON array unwrap), 404 handling, network error handling, multi-word phrase URL encoding
+- [ ] Dictionary client tests cover: successful lookup (JSON array unwrap), 404 handling, 429 rate limit with exponential backoff, network error handling, multi-word phrase URL encoding
 - [ ] WordCard tests verify collapsed/expanded states and tap toggle
 - [ ] E2E test: submit "ephemeral" → card appears with definition text
 
@@ -245,7 +246,8 @@ Add IndexedDB persistence via Dexie.js so words survive app restarts and work of
 
 - **`apps/web/src/hooks/`**:
   - Refactor `useWordCollection.ts` to use Dexie store as source of truth instead of in-memory state
-  - `useDefinitionRetry.ts` — background hook that periodically checks for words with `definitionStatus: 'pending'` and retries dictionary lookup when online. Uses `navigator.onLine` and `online`/`offline` events.
+  - `useDefinitionRetry.ts` — background hook that periodically checks for words with `definitionStatus: 'pending'` and retries dictionary lookup when online. Uses `navigator.onLine` and `online`/`offline` events. Throttled retry (leaky bucket) to respect API rate limits during bulk reconnection scenarios.
+  - `useStorageMonitor.ts` — periodically checks IndexedDB usage via `navigator.storage.estimate()`. Shows subtle warning if usage exceeds 80% of quota (unlikely for word collections, but specified in spec edge cases).
 
 - **`apps/web/src/` (PWA setup)**:
   - `manifest.json` — PWA manifest (app name, icons, theme color matching pastel palette, display: standalone)
@@ -266,6 +268,8 @@ Add IndexedDB persistence via Dexie.js so words survive app restarts and work of
 - [ ] Entering a word offline saves it locally with `pending` definition status
 - [ ] When connectivity returns, pending definitions are fetched automatically
 - [ ] App is installable as PWA (manifest recognized by browser)
+
+> **SC-003 note**: After this phase, offline operations work when the app is already loaded in the browser. Full offline app startup (loading the app while offline) requires the service worker in Phase 11.
 
 ---
 
@@ -325,7 +329,7 @@ Add Google OAuth authentication, JWT session management, and the sync engine wit
 - **`apps/api/src/`**:
   - `plugins/auth.ts` — Fastify plugin: Google OAuth flow (authorization code → token exchange → user upsert), JWT token issuance, token validation middleware
   - `routes/auth.ts` — `GET /auth/google` (redirect to Google), `GET /auth/google/callback` (handle callback, issue JWT), `POST /auth/logout`, `GET /auth/me` (current user)
-  - `services/sync.ts` — sync service: accept batch of local words from client, smart merge logic (deduplicate by text, combine list assignments, keep richer definition), return merged state
+  - `services/sync.ts` — sync service: accept batch of local words from client, smart merge logic (deduplicate by text, combine list assignments, keep richer definition with definitionStatus precedence: `found` > `not_found` > `pending`), return merged state
   - `routes/sync.ts` — `POST /sync` (receive local words, return merged state), `GET /sync` (pull latest server state since timestamp)
 
 - **`packages/shared/src/types/`**:
@@ -339,15 +343,16 @@ Add Google OAuth authentication, JWT session management, and the sync engine wit
   - `components/TopBar/` — update avatar: ghost outline when signed out → Google profile photo when signed in. One-time tooltip for unsigned-in users.
   - Update Dexie schema to include `syncedAt` and `dirty` flag on words
 
-- **Unit tests**: Smart merge logic (duplicate dedup, list combining, richer definition selection), auth token handling, sync state management
-- **E2E test**: Sign-in flow (mocked OAuth), verify sync pushes local words to server
+- **Unit tests**: Smart merge logic (duplicate dedup, list combining, richer definition selection, definitionStatus precedence), auth token handling, sync state management, tooltip appearance and persistence (localStorage flag)
+- **E2E tests**: Sign-in flow (mocked OAuth) verify sync pushes local words to server; tooltip appears for new user and does not reappear after dismissal
 
 ### Success Criteria
 
 #### Automated Verification:
 - [ ] `pnpm check:all` passes
-- [ ] Smart merge unit tests cover: identical words → deduplicate, different lists → combine, one has definition + one doesn't → keep the one with definition
+- [ ] Smart merge unit tests cover: identical words → deduplicate, different lists → combine, one has definition + one doesn't → keep the one with definition, definitionStatus precedence (found > not_found > pending)
 - [ ] Auth flow unit tests verify JWT issuance and validation
+- [ ] Tooltip unit/E2E test: appears for new unsigned-in user, persists dismissal via localStorage, does not reappear
 - [ ] E2E: mock OAuth → sign in → local words appear on server
 
 #### Manual Verification:
@@ -382,9 +387,12 @@ Add list creation, word tagging, feed filtering, real-time search across words a
   - Text search query support for words: search across `text` field and `definitions` JSON content via Dexie Collection.filter()
 
 - **`apps/web/src/hooks/`**:
-  - `useLists.ts` — list state management, CRUD, sync with backend when signed in
+  - `useLists.ts` — list state management, CRUD, sync with backend when signed in. **List sync strategy**: direct CRUD API calls when online (lists are lightweight, no complex merge needed); local Dexie fallback when offline with `dirty` flag; sync pending list changes on reconnection via the same `online`/`offline` event pattern from Phase 4.
   - `useSearch.ts` — search state management: query string, active/inactive state, debounced filtering
   - Update `useWordCollection.ts` — add combined list + search filter support
+
+- **`apps/api/src/routes/sync.ts`**:
+  - Extend sync protocol to include lists and word-list associations in the sync payload (both push and pull). Lists use timestamp-based sync matching the word sync pattern from Phase 6.
 
 - **`packages/shared/src/types/`**:
   - List types and Zod schemas for list operations
@@ -431,8 +439,11 @@ Integrate Azure OpenAI for generating usage examples, with backend proxying, rat
   - Update Dexie schema — add `examples` field to word records
 
 - **`tests/`**:
-  - MSW handlers for Azure OpenAI API mocking in E2E tests
-  - MSW setup for development mode (when `AZURE_OPENAI_ENDPOINT` not set)
+  - MSW handlers mocking the backend `/words/:id/examples` endpoint for E2E tests (MSW intercepts at browser level → backend API is mocked, not Azure directly)
+
+- **Stub strategy clarification**:
+  - **Dev mode**: Backend `services/ai.ts` detects missing `AZURE_OPENAI_ENDPOINT` and returns canned responses directly — exercises the full API path including rate limiting and response shaping
+  - **E2E tests**: MSW mocks the backend endpoint (`POST /words/:id/examples`) to avoid needing a running API server
 
 - **Unit tests**: Rate limit logic, AI service (with mocked Azure client), example caching
 - **E2E test**: Generate examples for a word (MSW mocked) → verify examples appear in card

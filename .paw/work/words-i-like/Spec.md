@@ -112,6 +112,7 @@ Acceptance Scenarios:
 3. Given the user has generated 20 examples today, When they attempt another, Then a friendly message indicates the daily limit has been reached
 4. Given the device is offline, When the user taps "generate examples", Then a message indicates this feature requires an internet connection
 5. Given examples have been previously generated for a word, When the user expands that word, Then the cached examples are shown without re-generating
+6. Given `AZURE_OPENAI_ENDPOINT` is not set, When AI example generation is triggered, Then the backend stub returns canned responses (exercises full API path including rate limiting)
 
 ### User Story P3 – Share a Word List
 
@@ -136,7 +137,6 @@ Acceptance Scenarios:
 3. Given dependencies are installed, When `pnpm check:all` is run, Then lint, typecheck, unit tests, E2E tests, and visual tests all pass sequentially
 4. Given Docker is available, When `pnpm dev:up` is run, Then PostgreSQL 18, Fastify API, and Vite dev server all start and are accessible
 5. Given the dev environment is running, When an agent modifies a source file, Then the relevant dev server hot-reloads the change
-6. Given `AZURE_OPENAI_ENDPOINT` is not set, When AI example generation is triggered, Then a local stub returns canned responses
 
 ### Edge Cases
 
@@ -270,7 +270,7 @@ Out of Scope:
 - **Azure OpenAI cost**: Per-request costs could accumulate. Mitigation: 20/day per-user hard limit; Azure budget alerts; cache generated examples to avoid re-generation.
 - **Visual regression flakiness**: Screenshot tests can be fragile across environments. Mitigation: Disable animations in test mode; use mock data; set explicit viewports; allow 0.1% pixel tolerance.
 - **PWA storage limits**: Browser-imposed IndexedDB quotas could be hit. Mitigation: Word data is small (< 10MB for thousands of words); monitor usage and warn if approaching limits.
-- **Scope creep**: The vision spans 9 phases. Mitigation: Strict phase boundaries; each phase delivers a usable increment; features not in the current phase are out of scope.
+- **Scope creep**: The vision spans many phases. Mitigation: Strict phase boundaries; each phase delivers a usable increment; features not in the current phase are out of scope.
 
 ## References
 
