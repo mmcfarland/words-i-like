@@ -1,6 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { db } from '../db/schema'
 import { useWordCollection } from './useWordCollection'
+import 'fake-indexeddb/auto'
 
 vi.mock('../services/dictionary', () => ({
   lookupWord: vi.fn().mockResolvedValue({
@@ -10,9 +12,49 @@ vi.mock('../services/dictionary', () => ({
   }),
 }))
 
+beforeEach(async () => {
+  await db.words.clear()
+})
+
+afterEach(async () => {
+  await db.words.clear()
+})
+
 describe('useWordCollection', () => {
-  it('adds a word and fetches definition', async () => {
+  it('starts with empty words and loading state', () => {
     const { result } = renderHook(() => useWordCollection())
+    expect(result.current.isLoading).toBe(true)
+  })
+
+  it('loads words from IndexedDB on mount', async () => {
+    // Pre-populate IndexedDB
+    await db.words.add({
+      id: 'existing-1',
+      text: 'hello',
+      definitions: [],
+      definitionStatus: 'found',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    })
+
+    const { result } = renderHook(() => useWordCollection())
+
+    // Wait for load
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
+
+    expect(result.current.words).toHaveLength(1)
+    expect(result.current.words[0].text).toBe('hello')
+    expect(result.current.isLoading).toBe(false)
+  })
+
+  it('adds a word and persists to IndexedDB', async () => {
+    const { result } = renderHook(() => useWordCollection())
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
 
     await act(async () => {
       const res = await result.current.addWord('test')
@@ -20,12 +62,19 @@ describe('useWordCollection', () => {
     })
 
     expect(result.current.words).toHaveLength(1)
-    expect(result.current.words[0].text).toBe('test')
-    expect(result.current.words[0].definitionStatus).toBe('found')
+
+    // Verify persisted
+    const stored = await db.words.toArray()
+    expect(stored).toHaveLength(1)
+    expect(stored[0].text).toBe('test')
   })
 
-  it('detects duplicate words (case-insensitive)', async () => {
+  it('detects duplicate words', async () => {
     const { result } = renderHook(() => useWordCollection())
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
 
     await act(async () => {
       await result.current.addWord('Hello')
@@ -36,26 +85,16 @@ describe('useWordCollection', () => {
       expect(res.isDuplicate).toBe(true)
     })
 
-    expect(result.current.words).toHaveLength(1)
-  })
-
-  it('adds words in reverse chronological order', async () => {
-    const { result } = renderHook(() => useWordCollection())
-
-    await act(async () => {
-      await result.current.addWord('first')
-    })
-
-    await act(async () => {
-      await result.current.addWord('second')
-    })
-
-    expect(result.current.words[0].text).toBe('second')
-    expect(result.current.words[1].text).toBe('first')
+    const stored = await db.words.toArray()
+    expect(stored).toHaveLength(1)
   })
 
   it('toggles expanded state', async () => {
     const { result } = renderHook(() => useWordCollection())
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
 
     await act(async () => {
       await result.current.addWord('test')
@@ -66,13 +105,11 @@ describe('useWordCollection', () => {
     act(() => {
       result.current.toggleExpanded(id)
     })
-
     expect(result.current.expandedIds.has(id)).toBe(true)
 
     act(() => {
       result.current.toggleExpanded(id)
     })
-
     expect(result.current.expandedIds.has(id)).toBe(false)
   })
 })

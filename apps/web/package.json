@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@words/shared": "workspace:*",
+    "dexie": "^4.3.0",
     "framer-motion": "^12.34.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -25,6 +26,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "@words/eslint-config": "workspace:*",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^26.0.0",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",

@@ -1,5 +1,6 @@
 import type { Word } from '@words/shared'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { wordStore } from '../db'
 import { lookupWord } from '../services/dictionary'
 
 let nextId = 0
@@ -12,15 +13,27 @@ export interface WordCollectionResult {
   addWord: (text: string) => Promise<{ isDuplicate: boolean }>
   toggleExpanded: (id: string) => void
   expandedIds: Set<string>
+  isLoading: boolean
+  refreshWords: () => Promise<void>
 }
 
 export function useWordCollection(): WordCollectionResult {
   const [words, setWords] = useState<Word[]>([])
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Load words from IndexedDB on mount
+  useEffect(() => {
+    wordStore.getAll().then((stored) => {
+      setWords(stored)
+      setIsLoading(false)
+    }).catch(() => {
+      setIsLoading(false)
+    })
+  }, [])
 
   const addWord = useCallback(async (text: string): Promise<{ isDuplicate: boolean }> => {
-    const normalized = text.toLowerCase().trim()
-    const existing = words.find(w => w.text.toLowerCase() === normalized)
+    const existing = await wordStore.findByText(text.trim())
 
     if (existing) {
       setExpandedIds(prev => new Set(prev).add(existing.id))
@@ -37,26 +50,30 @@ export function useWordCollection(): WordCollectionResult {
       updatedAt: now,
     }
 
+    // Save to IndexedDB immediately
+    await wordStore.add(newWord)
     setWords(prev => [newWord, ...prev])
 
+    // Fetch definition
     const result = await lookupWord(text)
+    const updates = {
+      definitions: result.meanings,
+      pronunciation: result.pronunciation,
+      definitionStatus: result.status,
+    }
 
+    // Update IndexedDB
+    await wordStore.update(newWord.id, updates)
     setWords(prev =>
       prev.map(w =>
         w.id === newWord.id
-          ? {
-              ...w,
-              definitions: result.meanings,
-              pronunciation: result.pronunciation,
-              definitionStatus: result.status,
-              updatedAt: Date.now(),
-            }
+          ? { ...w, ...updates, updatedAt: Date.now() }
           : w,
       ),
     )
 
     return { isDuplicate: false }
-  }, [words])
+  }, [])
 
   const toggleExpanded = useCallback((id: string) => {
     setExpandedIds((prev) => {
@@ -71,5 +88,10 @@ export function useWordCollection(): WordCollectionResult {
     })
   }, [])
 
-  return { words, addWord, toggleExpanded, expandedIds }
+  const refreshWords = useCallback(async () => {
+    const stored = await wordStore.getAll()
+    setWords(stored)
+  }, [])
+
+  return { words, addWord, toggleExpanded, expandedIds, isLoading, refreshWords }
 }
