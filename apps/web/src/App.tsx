@@ -20,6 +20,7 @@ export function App() {
     filteredWords,
     addWord,
     deleteWord,
+    correctWord,
     toggleExpanded,
     expandedIds,
     isLoading,
@@ -131,6 +132,7 @@ export function App() {
         expandedIds={expandedIds}
         onToggle={toggleExpanded}
         onDelete={deleteWord}
+        onCorrectWord={correctWord}
         onAssignToList={handleAssignToList}
         onExamplesGenerated={handleExamplesGenerated}
       />

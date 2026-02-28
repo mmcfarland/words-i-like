@@ -9,6 +9,7 @@ interface WordFeedProps {
   expandedIds: Set<string>
   onToggle: (id: string) => void
   onDelete?: (wordId: string) => void
+  onCorrectWord?: (wordId: string, correctedText: string) => void
   onAssignToList?: (wordId: string) => void
   onExamplesGenerated?: (wordId: string, examples: string[]) => void
 }
@@ -49,7 +50,7 @@ function SwipeableCard({ children, onDelete }: { children: React.ReactNode, onDe
   )
 }
 
-export function WordFeed({ words, expandedIds: _expandedIds, onToggle: _onToggle, onDelete, onAssignToList, onExamplesGenerated }: WordFeedProps) {
+export function WordFeed({ words, expandedIds: _expandedIds, onToggle: _onToggle, onDelete, onCorrectWord, onAssignToList, onExamplesGenerated }: WordFeedProps) {
   if (words.length === 0) {
     return null
   }
@@ -76,6 +77,7 @@ export function WordFeed({ words, expandedIds: _expandedIds, onToggle: _onToggle
                 examples={word.examples}
                 onAssignToList={onAssignToList}
                 onExamplesGenerated={onExamplesGenerated}
+                onCorrectWord={onCorrectWord}
               />
             </SwipeableCard>
           </motion.div>

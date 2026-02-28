@@ -33,6 +33,7 @@ export interface WordCollectionResult {
   filteredWords: Word[]
   addWord: (text: string) => Promise<{ isDuplicate: boolean }>
   deleteWord: (id: string) => Promise<void>
+  correctWord: (id: string, correctedText: string) => Promise<void>
   toggleExpanded: (id: string) => void
   expandedIds: Set<string>
   isLoading: boolean
@@ -149,6 +150,33 @@ export function useWordCollection(): WordCollectionResult {
     })
   }, [])
 
+  const correctWord = useCallback(async (id: string, correctedText: string) => {
+    // Update the word text and re-lookup definition
+    await wordStore.update(id, { text: correctedText, definitionStatus: 'pending', definitions: [] })
+    setWords(prev =>
+      prev.map(w =>
+        w.id === id
+          ? { ...w, text: correctedText, definitionStatus: 'pending' as const, definitions: [] }
+          : w,
+      ),
+    )
+
+    const result = await lookupWord(correctedText)
+    const updates = {
+      definitions: result.meanings,
+      pronunciation: result.pronunciation,
+      definitionStatus: result.status,
+    }
+    await wordStore.update(id, updates)
+    setWords(prev =>
+      prev.map(w =>
+        w.id === id
+          ? { ...w, ...updates, updatedAt: Date.now() }
+          : w,
+      ),
+    )
+  }, [])
+
   const refreshWords = useCallback(async () => {
     const stored = await wordStore.getAll()
     setWords(stored)
@@ -164,6 +192,7 @@ export function useWordCollection(): WordCollectionResult {
     filteredWords,
     addWord,
     deleteWord,
+    correctWord,
     toggleExpanded,
     expandedIds,
     isLoading,

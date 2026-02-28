@@ -1,8 +1,9 @@
 import type { DefinitionStatus, DictionaryMeaning } from '@words/shared'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { aiService } from '../../services/ai'
 import { authService } from '../../services/auth'
+import { getSuggestions } from '../../services/spellcheck'
 import styles from './WordCard.module.css'
 
 interface WordCardProps {
@@ -14,6 +15,7 @@ interface WordCardProps {
   examples?: string[]
   onAssignToList?: (wordId: string) => void
   onExamplesGenerated?: (wordId: string, examples: string[]) => void
+  onCorrectWord?: (wordId: string, correctedText: string) => void
 }
 
 function getExcerpt(meanings: DictionaryMeaning[]): string {
@@ -23,13 +25,21 @@ function getExcerpt(meanings: DictionaryMeaning[]): string {
   return firstDef.length > 120 ? `${firstDef.slice(0, 117)}...` : firstDef
 }
 
-export function WordCard({ text, meanings, pronunciation, definitionStatus, wordId, examples: cachedExamples, onAssignToList, onExamplesGenerated }: WordCardProps) {
+export function WordCard({ text, meanings, pronunciation, definitionStatus, wordId, examples: cachedExamples, onAssignToList, onExamplesGenerated, onCorrectWord }: WordCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [examples, setExamples] = useState<string[] | undefined>(cachedExamples)
   const [loadingExamples, setLoadingExamples] = useState(false)
   const [examplesError, setExamplesError] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<string[]>([])
   const toggle = useCallback(() => setIsExpanded(prev => !prev), [])
   const excerpt = getExcerpt(meanings)
+
+  // Fetch spell suggestions when definition not found
+  useEffect(() => {
+    if (definitionStatus === 'not_found') {
+      getSuggestions(text, 3).then(setSuggestions).catch(() => {})
+    }
+  }, [definitionStatus, text])
 
   const handleGenerateExamples = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -67,7 +77,30 @@ export function WordCard({ text, meanings, pronunciation, definitionStatus, word
       </div>
 
       {definitionStatus === 'not_found' && (
-        <p className={styles.noDefinition}>No definition found</p>
+        <div className={styles.notFound}>
+          <p className={styles.noDefinition}>No definition found</p>
+          {suggestions.length > 0 && (
+            <div className={styles.suggestions}>
+              <span className={styles.suggestionsLabel}>Did you mean</span>
+              <div className={styles.suggestionPills}>
+                {suggestions.map(s => (
+                  <button
+                    key={s}
+                    className={styles.suggestionPill}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (wordId && onCorrectWord)
+                        onCorrectWord(wordId, s)
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {definitionStatus === 'pending' && (
