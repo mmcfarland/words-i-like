@@ -1,0 +1,23 @@
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  color: var(--color-accent);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+}
+
+.button:disabled {
+  color: var(--color-text-placeholder);
+  cursor: default;
+}

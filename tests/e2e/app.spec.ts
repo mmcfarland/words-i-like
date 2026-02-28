@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('app loads and displays title', async ({ page }) => {
+test('app loads and displays word input', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('Words I Like')).toBeVisible()
+  await expect(page.getByPlaceholder('What word caught your eye?')).toBeVisible()
 })
