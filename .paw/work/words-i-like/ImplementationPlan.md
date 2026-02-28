@@ -60,10 +60,10 @@ A fully functional PWA deployed to Azure with:
 ## Phase Candidates
 
 <!-- Potential future phases that may be promoted after core implementation -->
-- [x] Dark mode theme with system preference detection
-- [x] Export word lists to CSV/JSON
-- [x] Import words from shared lists into own collection
-- [x] Swipe gestures as power-user shortcuts on word cards
+- [x] [deferred] Dark mode theme with system preference detection
+- [x] [deferred] Export word lists to CSV/JSON
+- [x] [deferred] Import words from shared lists into own collection
+- [x] [deferred] Swipe gestures as power-user shortcuts on word cards
 
 ---
 
