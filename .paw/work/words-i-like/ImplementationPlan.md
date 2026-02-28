@@ -53,17 +53,17 @@ A fully functional PWA deployed to Azure with:
 - [x] **Phase 7: Lists, Search & Organization** — List CRUD, word tagging, feed filtering, real-time search, bottom half-sheet UI
 - [x] **Phase 8: AI Usage Examples** — Azure OpenAI integration, example generation endpoint, rate limiting, MSW stubs
 - [x] **Phase 9: Sharing** — Public share links, read-only list view, share URL generation
-- [ ] **Phase 10: Azure Infrastructure & CI/CD** — Bicep templates, GitHub Actions, staging + production environments
-- [ ] **Phase 11: PWA Polish & Visual Regression** — Service worker, offline indicators, performance optimization, visual regression baselines
-- [ ] **Phase 12: Documentation** — Docs.md, project documentation, copilot-instructions.md finalization
+- [x] **Phase 10: Azure Infrastructure & CI/CD** — Bicep templates, GitHub Actions, staging + production environments
+- [x] **Phase 11: PWA Polish & Visual Regression** — Service worker, offline indicators, performance optimization, visual regression baselines
+- [x] **Phase 12: Documentation** — Docs.md, project documentation, copilot-instructions.md finalization
 
 ## Phase Candidates
 
 <!-- Potential future phases that may be promoted after core implementation -->
-- [ ] Dark mode theme with system preference detection
-- [ ] Export word lists to CSV/JSON
-- [ ] Import words from shared lists into own collection
-- [ ] Swipe gestures as power-user shortcuts on word cards
+- [x] Dark mode theme with system preference detection
+- [x] Export word lists to CSV/JSON
+- [x] Import words from shared lists into own collection
+- [x] Swipe gestures as power-user shortcuts on word cards
 
 ---
 
@@ -128,16 +128,16 @@ Establish the monorepo scaffold, quality gates, Docker environment, and agent pr
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm install` completes without errors
-- [ ] `pnpm check:quick` passes (lint + typecheck across all packages)
-- [ ] `pnpm check:all` passes (lint + typecheck + unit tests + e2e + visual)
-- [ ] `pnpm build` produces production builds for web and API
-- [ ] ESLint boundary rules reject a forbidden import (e.g., `apps/web` importing from `packages/db`) — verified by a test case in the ESLint config
+- [x] `pnpm install` completes without errors
+- [x] `pnpm check:quick` passes (lint + typecheck across all packages)
+- [x] `pnpm check:all` passes (lint + typecheck + unit tests + e2e + visual)
+- [x] `pnpm build` produces production builds for web and API
+- [x] ESLint boundary rules reject a forbidden import (e.g., `apps/web` importing from `packages/db`) — verified by a test case in the ESLint config
 
 #### Manual Verification:
-- [ ] `pnpm dev` starts Vite dev server, app renders "Words I Like"
-- [ ] `pnpm dev:up` starts Docker Compose stack (PG 18, API, web) and all services are reachable
-- [ ] `copilot-instructions.md` accurately reflects the repo structure and conventions
+- [x] `pnpm dev` starts Vite dev server, app renders "Words I Like"
+- [x] `pnpm dev:up` starts Docker Compose stack (PG 18, API, web) and all services are reachable
+- [x] `copilot-instructions.md` accurately reflects the repo structure and conventions
 
 ---
 
@@ -172,17 +172,17 @@ Establish the visual foundation: typography, color tokens, spacing scale, and th
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] Unit tests verify input validation (empty reject, 1-3 words accept, 4+ words reject)
-- [ ] Unit tests verify scroll-state transitions
+- [x] `pnpm check:all` passes
+- [x] Unit tests verify input validation (empty reject, 1-3 words accept, 4+ words reject)
+- [x] Unit tests verify scroll-state transitions
 
 #### Manual Verification:
-- [ ] Input renders with serif typeface, no visible border, soft background contrast
-- [ ] Typing in the input feels immediate and responsive
-- [ ] Submit icon animates from feather to checkmark smoothly
-- [ ] Scrolling transitions input from large to compact sticky header
-- [ ] Color palette matches spec: soft pastels, lavender/sky blue, tinted shadows
-- [ ] No hard borders visible anywhere in the UI
+- [x] Input renders with serif typeface, no visible border, soft background contrast
+- [x] Typing in the input feels immediate and responsive
+- [x] Submit icon animates from feather to checkmark smoothly
+- [x] Scrolling transitions input from large to compact sticky header
+- [x] Color palette matches spec: soft pastels, lavender/sky blue, tinted shadows
+- [x] No hard borders visible anywhere in the UI
 
 ---
 
@@ -219,18 +219,18 @@ Connect word input to the Free Dictionary API, display word cards with definitio
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] Dictionary client tests cover: successful lookup (JSON array unwrap), 404 handling, 429 rate limit with exponential backoff, network error handling, multi-word phrase URL encoding
-- [ ] WordCard tests verify collapsed/expanded states and tap toggle
-- [ ] E2E test: submit "ephemeral" → card appears with definition text
+- [x] `pnpm check:all` passes
+- [x] Dictionary client tests cover: successful lookup (JSON array unwrap), 404 handling, 429 rate limit with exponential backoff, network error handling, multi-word phrase URL encoding
+- [x] WordCard tests verify collapsed/expanded states and tap toggle
+- [x] E2E test: submit "ephemeral" → card appears with definition text
 
 #### Manual Verification:
-- [ ] Word slides down from input with smooth animation
-- [ ] Definition fades in with slight delay after word settles
-- [ ] Collapsed card shows word (serif) + definition excerpt (sans-serif)
-- [ ] Expanded card shows all definitions with part-of-speech labels and pronunciation
-- [ ] Cards have dreamy, airy separation (no hard borders)
-- [ ] Entering a duplicate word surfaces the existing entry
+- [x] Word slides down from input with smooth animation
+- [x] Definition fades in with slight delay after word settles
+- [x] Collapsed card shows word (serif) + definition excerpt (sans-serif)
+- [x] Expanded card shows all definitions with part-of-speech labels and pronunciation
+- [x] Cards have dreamy, airy separation (no hard borders)
+- [x] Entering a duplicate word surfaces the existing entry
 
 ---
 
@@ -259,15 +259,15 @@ Add IndexedDB persistence via Dexie.js so words survive app restarts and work of
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] Unit tests verify: word persistence across Dexie operations, duplicate detection via `findByText`, definition retry triggers on `pending` status, retry skips `not_found` words
-- [ ] E2E test: add word → reload → word visible in feed
+- [x] `pnpm check:all` passes
+- [x] Unit tests verify: word persistence across Dexie operations, duplicate detection via `findByText`, definition retry triggers on `pending` status, retry skips `not_found` words
+- [x] E2E test: add word → reload → word visible in feed
 
 #### Manual Verification:
-- [ ] Words survive full app restart (close tab, reopen)
-- [ ] Entering a word offline saves it locally with `pending` definition status
-- [ ] When connectivity returns, pending definitions are fetched automatically
-- [ ] App is installable as PWA (manifest recognized by browser)
+- [x] Words survive full app restart (close tab, reopen)
+- [x] Entering a word offline saves it locally with `pending` definition status
+- [x] When connectivity returns, pending definitions are fetched automatically
+- [x] App is installable as PWA (manifest recognized by browser)
 
 > **SC-003 note**: After this phase, offline operations work when the app is already loaded in the browser. Full offline app startup (loading the app while offline) requires the service worker in Phase 11.
 
@@ -307,16 +307,16 @@ Set up the Fastify server, PostgreSQL schema via Prisma, and basic CRUD API endp
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] `pnpm db:migrate` applies schema without errors
-- [ ] `pnpm db:seed` populates sample data
-- [ ] Unit tests verify word CRUD operations against test database
-- [ ] API E2E: POST /words → 201, GET /words → returns created word
+- [x] `pnpm check:all` passes
+- [x] `pnpm db:migrate` applies schema without errors
+- [x] `pnpm db:seed` populates sample data
+- [x] Unit tests verify word CRUD operations against test database
+- [x] API E2E: POST /words → 201, GET /words → returns created word
 
 #### Manual Verification:
-- [ ] `pnpm dev:up` starts full stack with PG 18 and API connected
-- [ ] API responds at localhost with correct health check
-- [ ] Prisma Studio shows database tables and seed data
+- [x] `pnpm dev:up` starts full stack with PG 18 and API connected
+- [x] API responds at localhost with correct health check
+- [x] Prisma Studio shows database tables and seed data
 
 ---
 
@@ -349,17 +349,17 @@ Add Google OAuth authentication, JWT session management, and the sync engine wit
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] Smart merge unit tests cover: identical words → deduplicate, different lists → combine, one has definition + one doesn't → keep the one with definition, definitionStatus precedence (found > not_found > pending)
-- [ ] Auth flow unit tests verify JWT issuance and validation
-- [ ] Tooltip unit/E2E test: appears for new unsigned-in user, persists dismissal via localStorage, does not reappear
-- [ ] E2E: mock OAuth → sign in → local words appear on server
+- [x] `pnpm check:all` passes
+- [x] Smart merge unit tests cover: identical words → deduplicate, different lists → combine, one has definition + one doesn't → keep the one with definition, definitionStatus precedence (found > not_found > pending)
+- [x] Auth flow unit tests verify JWT issuance and validation
+- [x] Tooltip unit/E2E test: appears for new unsigned-in user, persists dismissal via localStorage, does not reappear
+- [x] E2E: mock OAuth → sign in → local words appear on server
 
 #### Manual Verification:
-- [ ] Avatar changes from ghost to profile photo on sign-in
-- [ ] First-time tooltip appears and is dismissible
-- [ ] Words created before sign-in are merged into cloud account
-- [ ] Words sync across two browser sessions after sign-in
+- [x] Avatar changes from ghost to profile photo on sign-in
+- [x] First-time tooltip appears and is dismissible
+- [x] Words created before sign-in are merged into cloud account
+- [x] Words sync across two browser sessions after sign-in
 
 ---
 
@@ -403,22 +403,22 @@ Add list creation, word tagging, feed filtering, real-time search across words a
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] Unit tests verify: list CRUD, word-list many-to-many operations, feed filtering logic
-- [ ] Unit tests verify: search filters words by text match and definition content match, handles diacritics correctly
-- [ ] E2E: create list → assign word → filter → correct words shown
-- [ ] E2E: search for keyword in definition → matching words shown, dismiss search → all words shown
+- [x] `pnpm check:all` passes
+- [x] Unit tests verify: list CRUD, word-list many-to-many operations, feed filtering logic
+- [x] Unit tests verify: search filters words by text match and definition content match, handles diacritics correctly
+- [x] E2E: create list → assign word → filter → correct words shown
+- [x] E2E: search for keyword in definition → matching words shown, dismiss search → all words shown
 
 #### Manual Verification:
-- [ ] Half-sheet slides up smoothly from bottom with list options
-- [ ] Creating a new list works inline in the half-sheet
-- [ ] Filtering the feed by a list shows only tagged words
-- [ ] "All Words" option resets the filter
-- [ ] A word assigned to multiple lists appears when filtering by any of them
-- [ ] Search icon in top bar activates search overlay sliding down over input area
-- [ ] Typing in search filters the feed in real time
-- [ ] Dismissing search restores the input area and unfiltered feed
-- [ ] Search works offline (queries local IndexedDB)
+- [x] Half-sheet slides up smoothly from bottom with list options
+- [x] Creating a new list works inline in the half-sheet
+- [x] Filtering the feed by a list shows only tagged words
+- [x] "All Words" option resets the filter
+- [x] A word assigned to multiple lists appears when filtering by any of them
+- [x] Search icon in top bar activates search overlay sliding down over input area
+- [x] Typing in search filters the feed in real time
+- [x] Dismissing search restores the input area and unfiltered feed
+- [x] Search works offline (queries local IndexedDB)
 
 ---
 
@@ -451,18 +451,18 @@ Integrate Azure OpenAI for generating usage examples, with backend proxying, rat
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] Rate limit unit tests verify: count increments, 21st request rejected, reset logic works
-- [ ] AI service tests verify prompt structure and response parsing
-- [ ] E2E: generate examples → examples appear in expanded card
+- [x] `pnpm check:all` passes
+- [x] Rate limit unit tests verify: count increments, 21st request rejected, reset logic works
+- [x] AI service tests verify prompt structure and response parsing
+- [x] E2E: generate examples → examples appear in expanded card
 
 #### Manual Verification:
-- [ ] "Generate examples" button appears in expanded word card (when signed in)
-- [ ] Loading state shows while examples generate
-- [ ] Examples fade in with smooth animation
-- [ ] Rate limit message appears after 20 generations in a day
-- [ ] Previously generated examples shown instantly without re-generation
-- [ ] Without Azure credentials configured, stub returns canned examples
+- [x] "Generate examples" button appears in expanded word card (when signed in)
+- [x] Loading state shows while examples generate
+- [x] Examples fade in with smooth animation
+- [x] Rate limit message appears after 20 generations in a day
+- [x] Previously generated examples shown instantly without re-generation
+- [x] Without Azure credentials configured, stub returns canned examples
 
 ---
 
@@ -487,15 +487,15 @@ Add public read-only list sharing via unique URLs.
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] Unit tests verify: share token generation, public endpoint returns list without auth, 404 for invalid tokens
-- [ ] E2E: share list → visit URL → words visible
+- [x] `pnpm check:all` passes
+- [x] Unit tests verify: share token generation, public endpoint returns list without auth, 404 for invalid tokens
+- [x] E2E: share list → visit URL → words visible
 
 #### Manual Verification:
-- [ ] Share action generates a copyable URL
-- [ ] Visiting the URL shows a read-only view with the dreamy aesthetic
-- [ ] No sign-in required to view shared lists
-- [ ] Adding/removing words from the list updates the shared view
+- [x] Share action generates a copyable URL
+- [x] Visiting the URL shows a read-only view with the dreamy aesthetic
+- [x] No sign-in required to view shared lists
+- [x] Adding/removing words from the list updates the shared view
 
 ---
 
@@ -525,14 +525,14 @@ Create Bicep templates for Azure resources and GitHub Actions pipelines for stag
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `az bicep build` succeeds for all templates
-- [ ] GitHub Actions workflows are syntactically valid
-- [ ] `pnpm check:all` still passes
+- [x] `az bicep build` succeeds for all templates
+- [x] GitHub Actions workflows are syntactically valid
+- [x] `pnpm check:all` still passes
 
 #### Manual Verification:
-- [ ] Bicep templates deploy a working staging environment (when Azure credentials available)
-- [ ] CI pipeline runs on PR and reports status
-- [ ] Staging deployment is accessible via URL
+- [x] Bicep templates deploy a working staging environment (when Azure credentials available)
+- [x] CI pipeline runs on PR and reports status
+- [x] Staging deployment is accessible via URL
 
 ---
 
@@ -566,16 +566,16 @@ Finalize PWA capabilities, performance optimization, and establish visual regres
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes (including visual regression with baselines)
-- [ ] `pnpm test:visual` captures and compares all 8 key state screenshots
-- [ ] Service worker registers and caches app shell
-- [ ] All visual tests pass with ≤ 0.1% pixel difference
+- [x] `pnpm check:all` passes (including visual regression with baselines)
+- [x] `pnpm test:visual` captures and compares all 8 key state screenshots
+- [x] Service worker registers and caches app shell
+- [x] All visual tests pass with ≤ 0.1% pixel difference
 
 #### Manual Verification:
-- [ ] App works fully offline after initial load (word entry, browse, search, list management)
-- [ ] Offline indicator appears subtly when connectivity is lost
-- [ ] App is installable as PWA on mobile Chrome and Safari
-- [ ] Page load performance feels fast (< 2s first contentful paint)
+- [x] App works fully offline after initial load (word entry, browse, search, list management)
+- [x] Offline indicator appears subtly when connectivity is lost
+- [x] App is installable as PWA on mobile Chrome and Safari
+- [x] Page load performance feels fast (< 2s first contentful paint)
 
 ---
 
@@ -609,13 +609,13 @@ Create technical reference documentation and finalize project documentation.
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `pnpm check:all` passes
-- [ ] All documentation links are valid (no broken references)
+- [x] `pnpm check:all` passes
+- [x] All documentation links are valid (no broken references)
 
 #### Manual Verification:
-- [ ] A new developer/agent can set up the project following docs/development.md alone
-- [ ] copilot-instructions.md accurately reflects the complete project
-- [ ] README.md is professional and informative
+- [x] A new developer/agent can set up the project following docs/development.md alone
+- [x] copilot-instructions.md accurately reflects the complete project
+- [x] README.md is professional and informative
 
 ---
 
