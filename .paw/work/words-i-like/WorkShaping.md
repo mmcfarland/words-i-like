@@ -121,6 +121,38 @@ IndexedDB via Dexie.js. Schema mirrors the server-side PostgreSQL schema for cle
 
 ## Architecture
 
+### Monorepo Structure
+
+```
+words-1/
+├── apps/
+│   ├── web/              # React 19 PWA (Vite)
+│   └── api/              # Fastify backend (Node.js/TypeScript)
+├── packages/
+│   ├── shared/           # Shared types, constants, Zod validation schemas
+│   ├── db/               # Prisma schema, migrations, client
+│   └── eslint-config/    # Shared ESLint config
+├── tests/
+│   ├── e2e/              # Playwright functional E2E tests
+│   └── visual/           # Playwright visual regression tests
+├── infra/                # Bicep templates, deployment scripts
+├── docker/               # Docker Compose, Dockerfiles
+├── .github/              # GitHub Actions workflows
+├── copilot-instructions.md  # Agent project map & conventions
+├── turbo.json            # Turborepo pipeline config
+└── package.json          # Root pnpm workspace config
+```
+
+**Build orchestration**: Turborepo (task caching, dependency-aware builds)
+**Package manager**: pnpm (strict, fast, native workspaces)
+
+### Package Boundaries (ESLint-enforced)
+
+- `packages/shared` → no app imports allowed
+- `packages/db` → only `packages/shared`
+- `apps/api` → `packages/shared`, `packages/db`
+- `apps/web` → `packages/shared` only (never `packages/db` directly)
+
 ### Frontend
 
 - **React 19** + **Vite** (fast dev experience, modern tooling)
@@ -134,7 +166,7 @@ IndexedDB via Dexie.js. Schema mirrors the server-side PostgreSQL schema for cle
 
 - **Fastify** (Node.js/TypeScript) — fast, lightweight, good plugin ecosystem
 - **Azure Container Apps** — scales to zero, handles WebSockets, no cold-start issues
-- **PostgreSQL** (Azure Flexible Server, Burstable B1ms) — JSONB columns for semi-structured word metadata
+- **PostgreSQL 18** (Azure Flexible Server, Burstable B1ms) — JSONB columns for semi-structured word metadata
 - **ORM**: Prisma (TypeScript-native, great migration story)
 
 ### Hosting
@@ -155,24 +187,123 @@ Two viable options (decide during infrastructure phase):
 - **GitHub Actions** CI/CD with staging + production environments
 - **Environments**: dev (local) → staging → production
 
-### Testing
+## Dev Harness (Agent-Oriented Engineering)
 
-- **Vitest** for unit tests
-- **Playwright** for E2E tests
+Inspired by the harness engineering philosophy: the dev environment is primarily for coding agents. Every quality signal is scriptable, parseable, and fails loudly with actionable messages.
+
+### Principles
+
+1. **Environment Legibility** — Agents discover everything by reading structured repo files. `copilot-instructions.md` encodes conventions, architectural rules, and the project map. Every script has clear semantics.
+2. **Mechanical Guardrails** — Layering enforced by ESLint boundary rules (no forbidden imports). Strict TypeScript (`strict: true`, no `any`). Agents physically can't create forbidden dependencies — lint gates block them.
+3. **Structured Feedback** — Every script returns exit code 0 (pass) or non-zero (fail). `check:all` runs all gates in sequence, stops on first failure, reports which gate failed.
+4. **Local Reproducibility** — Docker Compose runs the full stack locally. One command to start everything. The only external dependency is Azure OpenAI (stubbed for tests).
+5. **Visual Regression as a Gate** — Playwright captures screenshots of key UI states. Baseline images committed. Agents verify they haven't broken the aesthetic without human eyes.
+
+### Linting & Formatting
+
+- **@antfu/eslint-config** — opinionated, TypeScript/React-ready, Prettier-compatible formatting built in
+- **eslint-plugin-boundaries** — enforce package boundary rules (see Package Boundaries above)
+- **TypeScript strict mode** — `strict: true`, no `any`, all packages
+
+### Script Taxonomy
+
+```bash
+# Fast feedback (agents run after every change)
+pnpm check:quick     # lint + typecheck (fast, ~10s)
+
+# Full quality gate
+pnpm check:all       # lint → typecheck → test → test:e2e → test:visual (stops on first failure)
+
+# Individual gates
+pnpm lint            # ESLint check (no fix)
+pnpm lint:fix        # ESLint auto-fix
+pnpm typecheck       # tsc --noEmit (all packages)
+pnpm test            # Vitest unit tests
+pnpm test:e2e        # Playwright functional E2E
+pnpm test:visual     # Playwright visual regression (screenshot diff)
+
+# Development
+pnpm dev             # Vite dev server (frontend only)
+pnpm dev:api         # Fastify dev server (backend only)
+pnpm dev:up          # Docker Compose up (full stack: PG 18 + API + web)
+pnpm dev:down        # Docker Compose down
+
+# Database
+pnpm db:migrate      # Prisma migrate dev
+pnpm db:generate     # Prisma generate
+pnpm db:seed         # Seed database
+pnpm db:reset        # Reset and reseed
+
+# Build
+pnpm build           # Production build (all packages)
+```
+
+### Docker Local Environment
+
+```yaml
+services:
+  db:   # PostgreSQL 18, persistent named volume, auto-seed
+  api:  # Fastify with hot-reload via volume mount
+  web:  # Vite dev server with hot-reload via volume mount
+```
+
+- Volume mounts for hot-reload — edit on host, containers pick up changes
+- PostgreSQL persistent volume (data survives restarts)
+- Environment variable `AZURE_OPENAI_ENDPOINT`: set → real calls, unset → local stub with canned responses
+
+### Testing Strategy
+
+- **Vitest** — unit tests, co-located with source (`*.test.ts`)
+- **Playwright E2E** — functional tests in `tests/e2e/`
+- **Playwright Visual** — screenshot regression in `tests/visual/`
+
+### Visual Regression Details
+
+~6-8 full-page screenshots covering critical UI states:
+1. Initial load (empty state, input prominent)
+2. Word entered (collapsed card with definition)
+3. Word expanded (full definition + action buttons)
+4. Multiple words in feed (scrolled, sticky header)
+5. List picker open (bottom half-sheet)
+6. Search active (search overlay)
+7. Logged-in state (avatar change)
+8. Mobile viewport (responsive check)
+
+Anti-flake measures:
+- Animations disabled during visual tests (`prefers-reduced-motion` or test flag)
+- Mock data via MSW (consistent words/definitions)
+- Explicit viewport sizes
+- Font load wait before capture
+- ~0.1% pixel diff tolerance
+
+### Azure OpenAI Stubbing
+
+- **MSW (Mock Service Worker)** intercepts AI API calls during tests
+- Local dev supports two modes: real Azure (endpoint configured) or stub (canned responses)
+- Tests never hit external services
+
+### copilot-instructions.md
+
+Living document that agents update as the project evolves. Contains:
+- Architecture overview and project map
+- Package boundaries with import rules
+- Quality gate commands
+- Coding conventions (TypeScript strict, Zod schemas, small components, thin route handlers)
+- File patterns (where components, routes, services, types live)
 
 ## Phasing Strategy (High-Level)
 
-The project should be built in phases, each delivering a usable increment:
+The project should be built in phases, each delivering a usable increment. **Harness-first**: the dev environment is established before any feature code.
 
-**Phase 1 — Local Word Collector**: Word entry + dictionary lookup + local persistence (IndexedDB). The core UX loop works on a single device with no backend. Focus on nailing the aesthetic and animations.
+**Phase 1 — Dev Harness**: Monorepo scaffold (Turborepo + pnpm), ESLint config with boundary rules, TypeScript strict, Vitest setup, Playwright setup (empty baselines), Docker Compose (PG 18), copilot-instructions.md, all scripts wired up. No feature code — just the skeleton that passes `check:all` with zero tests.
 
-**Phase 2 — Project Infrastructure**: Dev environment setup (linting, formatting, type checking, build scripts). Copilot instructions. Testing infrastructure.
+**Phase 2 — Local Word Collector**: Word entry + dictionary lookup + local persistence (IndexedDB/Dexie.js). The core UX loop works on a single device with no backend. Focus on nailing the aesthetic and animations. Built inside the harness — every change runs through quality gates.
 
-**Phase 3 — Backend Foundation**: Fastify server, PostgreSQL schema, Prisma setup. Docker-based local dev. Basic API endpoints.
+**Phase 3 — Backend Foundation**: Fastify server, PostgreSQL schema, Prisma setup, basic API endpoints. Docker Compose wired for full-stack local dev.
 
 **Phase 4 — Auth & Sync**: Google OAuth, user accounts, sync engine, smart merge on first login.
 
-**Phase 5 — AI Examples**: Azure OpenAI integration, usage example generation, daily rate limiting.
+**Phase 5 — AI Examples**: Azure OpenAI integration, usage example generation, daily rate limiting, MSW stubs for testing.
 
 **Phase 6 — Lists & Organization**: List creation, word tagging, list filtering, bottom half-sheet UI.
 
@@ -180,9 +311,7 @@ The project should be built in phases, each delivering a usable increment:
 
 **Phase 8 — Azure Infrastructure**: Bicep templates, Container Apps / Static Web Apps, GitHub Actions CI/CD, staging + production.
 
-**Phase 9 — PWA & Polish**: Service worker, app manifest, offline indicators, performance optimization, E2E tests.
-
-> Note: Phase ordering may be adjusted during detailed planning. Infrastructure (Phase 2) could move earlier. Auth (Phase 4) could precede or follow list organization.
+**Phase 9 — PWA & Polish**: Service worker, app manifest, offline indicators, performance optimization, comprehensive E2E and visual test coverage.
 
 ## Risk Assessment
 
@@ -211,6 +340,13 @@ The project should be built in phases, each delivering a usable increment:
 - **Dark mode deferred**: Get the light theme aesthetic right first
 - **Import via scripting**: Not an app feature; keeps UI scope clean
 - **Tap-to-expand over swipe**: More discoverable, cleaner interaction model
+- **Harness-first phasing**: Dev environment (Phase 1) before any feature code
+- **Turborepo + pnpm**: Lightweight monorepo orchestration
+- **@antfu/eslint-config**: Opinionated, modern, Prettier-compatible
+- **ESLint boundary enforcement**: Package imports enforced mechanically
+- **PostgreSQL 18**: Latest version
+- **Visual regression testing**: Full-page screenshots at key states, anti-flake measures
+- **No Fluent UI**: Dropped in favor of fully custom components matching the dreamy aesthetic
 
 ### Design Principles (Emerged from Discussion)
 1. **Words are the stars** — everything else is chrome that disappears
@@ -218,3 +354,4 @@ The project should be built in phases, each delivering a usable increment:
 3. **Immediate value** — open app, type word, done. No friction.
 4. **Progressive disclosure** — collapsed cards, expand on tap, actions only when needed
 5. **Literary feel** — serif for words, the app feels like a beautiful book, not a database
+6. **Harness-first** — dev environment is primarily for agents; legibility, guardrails, and structured feedback above all
