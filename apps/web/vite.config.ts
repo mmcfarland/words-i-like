@@ -6,6 +6,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // Only register service worker in production — prevents HMR issues in dev
+      devOptions: {
+        enabled: false,
+      },
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
@@ -17,7 +21,7 @@ export default defineConfig({
               cacheName: 'dictionary-api',
               expiration: {
                 maxEntries: 500,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
           },
@@ -35,16 +39,20 @@ export default defineConfig({
               cacheName: 'google-fonts-webfonts',
               expiration: {
                 maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },
         ],
       },
-      manifest: false, // We already have a manifest.json in public/
+      manifest: false,
     }),
   ],
   server: {
     port: 5173,
+    // Ensure HMR works reliably
+    hmr: {
+      overlay: true,
+    },
   },
 })
