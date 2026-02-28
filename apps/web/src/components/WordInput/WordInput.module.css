@@ -35,6 +35,8 @@
   color: var(--color-text-primary);
   background: transparent;
   border-bottom: 1.5px solid var(--color-border-subtle);
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
   transition:
     font-size var(--transition-normal),
     border-color var(--transition-fast),

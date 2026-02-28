@@ -55,7 +55,7 @@ export function WordInput({ onSubmit }: WordInputProps) {
             if (error)
               setError(undefined)
           }}
-          placeholder="What word caught your eye?"
+          placeholder="what word do you like?"
           aria-label="Enter a word"
           autoComplete="off"
           spellCheck={false}

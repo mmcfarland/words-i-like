@@ -7,7 +7,7 @@ describe('app', () => {
   it('renders the word input after loading', async () => {
     render(<App />)
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('What word caught your eye?')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('what word do you like?')).toBeInTheDocument()
     })
   })
 

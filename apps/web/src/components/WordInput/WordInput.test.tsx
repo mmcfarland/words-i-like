@@ -37,7 +37,7 @@ describe('wordInput', () => {
         <WordInput onSubmit={() => {}} />
       </AppShell>,
     )
-    expect(screen.getByPlaceholderText('What word caught your eye?')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('what word do you like?')).toBeInTheDocument()
   })
 
   it('calls onSubmit with trimmed value on valid input', () => {
