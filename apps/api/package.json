@@ -1,0 +1,27 @@
+{
+  "name": "@words/api",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --build",
+    "start": "node dist/server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@words/db": "workspace:*",
+    "@words/shared": "workspace:*",
+    "fastify": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.2",
+    "@words/eslint-config": "workspace:*",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

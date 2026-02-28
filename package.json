@@ -1,0 +1,31 @@
+{
+  "name": "words-i-like",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.6.2",
+  "scripts": {
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "pnpm --filter @words/e2e exec playwright test",
+    "test:visual": "pnpm --filter @words/visual exec playwright test",
+    "check:quick": "turbo run lint typecheck",
+    "check:all": "pnpm check:quick && pnpm test && pnpm test:e2e && pnpm test:visual",
+    "build": "turbo run build",
+    "dev": "turbo run dev --filter=@words/web",
+    "dev:api": "turbo run dev --filter=@words/api",
+    "dev:up": "docker compose -f docker/docker-compose.yml up -d",
+    "dev:down": "docker compose -f docker/docker-compose.yml down",
+    "db:migrate": "pnpm --filter @words/db exec prisma migrate dev",
+    "db:generate": "pnpm --filter @words/db exec prisma generate",
+    "db:seed": "pnpm --filter @words/db exec prisma db seed",
+    "db:reset": "pnpm --filter @words/db exec prisma migrate reset"
+  },
+  "devDependencies": {
+    "@words/eslint-config": "workspace:^",
+    "eslint": "^9.20.0",
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.0"
+  }
+}

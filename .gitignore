@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+test-results/
+playwright-report/
+blob-report/
+
+# Docker
+docker/pgdata/
+
+# Prisma
+packages/db/prisma/migrations/*.sql.bak
+
+# Generated
+*.tsbuildinfo
