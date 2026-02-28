@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { AppShell } from './components/AppShell'
 import { ListFilter } from './components/ListFilter'
 import { ListPicker } from './components/ListPicker'
+import { ListSelector } from './components/ListSelector'
 import { OfflineIndicator } from './components/OfflineIndicator'
 import { SearchOverlay } from './components/SearchOverlay'
 import { AuthTooltip } from './components/Tooltip'
@@ -151,17 +152,14 @@ export function App() {
         />
       )}
 
-      {/* List selector for filtering (reuse ListPicker UI as a simple list) */}
+      {/* List selector for filtering feed */}
       {showListSelector && (
-        <ListPicker
+        <ListSelector
           isOpen={showListSelector}
           onClose={handleListSelectorClose}
           lists={lists}
-          wordId=""
-          onCreateList={createList}
-          onAssign={async (_wordId, listId) => handleSelectListFilter(listId)}
-          onRemove={async () => handleSelectListFilter(null)}
-          getListsForWord={async () => filterByListId ? [filterByListId] : []}
+          activeListId={filterByListId}
+          onSelect={handleSelectListFilter}
         />
       )}
     </AppShell>

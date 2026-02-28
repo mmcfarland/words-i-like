@@ -73,10 +73,10 @@ export function ListPicker({
           />
           <motion.div
             className={styles.sheet}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             data-testid="list-picker-sheet"
           >
             <div className={styles.handle} />
