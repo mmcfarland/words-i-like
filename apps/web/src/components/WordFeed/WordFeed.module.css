@@ -1,0 +1,5 @@
+.feed {
+  padding: var(--space-2) var(--space-4);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}

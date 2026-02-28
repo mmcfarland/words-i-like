@@ -1,4 +1,10 @@
-export interface AppConfig {
-  apiUrl: string
-  env: 'development' | 'staging' | 'production'
-}
+export type { AppConfig } from './types/app'
+
+export type {
+  DefinitionStatus,
+  DictionaryDefinition,
+  DictionaryEntry,
+  DictionaryMeaning,
+  DictionaryPhonetic,
+  Word,
+} from './types/word'

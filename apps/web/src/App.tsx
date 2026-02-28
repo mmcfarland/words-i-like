@@ -1,24 +1,20 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { AppShell } from './components/AppShell'
+import { WordFeed } from './components/WordFeed'
 import { WordInput } from './components/WordInput'
+import { useWordCollection } from './hooks/useWordCollection'
 
 export function App() {
-  const [words, setWords] = useState<string[]>([])
+  const { words, addWord, toggleExpanded, expandedIds } = useWordCollection()
 
-  const handleSubmit = useCallback((word: string) => {
-    setWords(prev => [word, ...prev])
-  }, [])
+  const handleSubmit = useCallback(async (text: string) => {
+    await addWord(text)
+  }, [addWord])
 
   return (
     <AppShell>
       <WordInput onSubmit={handleSubmit} />
-      <div style={{ maxWidth: 'var(--content-max-width)', margin: '0 auto', padding: 'var(--space-4)' }}>
-        {words.map((word, i) => (
-          <p key={`${word}-${i}`} style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--text-xl)', marginBottom: 'var(--space-4)', color: 'var(--color-text-primary)' }}>
-            {word}
-          </p>
-        ))}
-      </div>
+      <WordFeed words={words} expandedIds={expandedIds} onToggle={toggleExpanded} />
     </AppShell>
   )
 }
