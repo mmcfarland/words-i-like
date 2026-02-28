@@ -1,0 +1,1 @@
+export { AuthTooltip } from './Tooltip'

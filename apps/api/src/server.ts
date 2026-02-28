@@ -1,7 +1,10 @@
 import process from 'node:process'
 import cors from '@fastify/cors'
 import Fastify from 'fastify'
+import authPlugin from './plugins/auth'
+import { authRoutes } from './routes/auth'
 import { healthRoutes } from './routes/health'
+import { syncRoutes } from './routes/sync'
 import { wordRoutes } from './routes/words'
 
 export function buildApp() {
@@ -11,8 +14,11 @@ export function buildApp() {
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   })
 
+  app.register(authPlugin)
   app.register(healthRoutes)
+  app.register(authRoutes)
   app.register(wordRoutes, { prefix: '/api' })
+  app.register(syncRoutes, { prefix: '/api' })
 
   return app
 }

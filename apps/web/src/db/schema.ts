@@ -11,6 +11,8 @@ export interface WordRecord {
   examples?: string[]
   createdAt: number
   updatedAt: number
+  syncedAt?: number
+  dirty?: boolean
 }
 
 export class WordsDatabase extends Dexie {
@@ -20,6 +22,9 @@ export class WordsDatabase extends Dexie {
     super('words-i-like')
     this.version(1).stores({
       words: 'id, text, createdAt, definitionStatus',
+    })
+    this.version(2).stores({
+      words: 'id, text, createdAt, definitionStatus, dirty',
     })
   }
 }

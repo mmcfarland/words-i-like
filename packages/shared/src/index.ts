@@ -3,6 +3,10 @@ export type { ApiError, ApiWord, CreateWordInput, UpdateWordInput } from './type
 
 export type { AppConfig } from './types/app'
 
+export type { AuthState, TokenPayload, UserProfile } from './types/auth'
+
+export { DEFINITION_STATUS_RANK, SyncRequestSchema, SyncWordSchema } from './types/sync'
+export type { DefinitionStatusPrecedence, SyncRequest, SyncResponse, SyncWord } from './types/sync'
 export type {
   DefinitionStatus,
   DictionaryDefinition,

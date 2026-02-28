@@ -14,7 +14,7 @@ describe('appShell', () => {
         <div>Content</div>
       </AppShell>,
     )
-    expect(screen.getByLabelText('Account')).toBeInTheDocument()
+    expect(screen.getByLabelText('Sign in')).toBeInTheDocument()
     expect(screen.getByLabelText('Search')).toBeInTheDocument()
     expect(screen.getByLabelText('Lists')).toBeInTheDocument()
     expect(screen.getByText('Content')).toBeInTheDocument()

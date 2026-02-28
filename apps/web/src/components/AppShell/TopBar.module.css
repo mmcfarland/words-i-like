@@ -41,3 +41,19 @@
 .iconButton:hover {
   color: var(--color-text-secondary);
 }
+
+.avatarImage {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.avatarGhost {
+  opacity: 0.4;
+}
+
+.avatarActive {
+  opacity: 1;
+  color: var(--color-accent);
+}

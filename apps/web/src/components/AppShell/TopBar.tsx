@@ -1,13 +1,31 @@
+import type { UserProfile } from '@words/shared'
 import styles from './TopBar.module.css'
 
-export function TopBar() {
+interface TopBarProps {
+  user: UserProfile | null
+  onSignIn: () => void
+  onSignOut: () => void
+}
+
+export function TopBar({ user, onSignIn, onSignOut }: TopBarProps) {
   return (
     <header className={styles.topbar}>
-      <button className={styles.avatar} aria-label="Account" type="button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21v-1a6 6 0 0 1 12 0v1" />
-        </svg>
+      <button
+        className={styles.avatar}
+        aria-label={user ? `Signed in as ${user.displayName}` : 'Sign in'}
+        type="button"
+        onClick={user ? onSignOut : onSignIn}
+      >
+        {user?.avatarUrl
+          ? (
+              <img src={user.avatarUrl} alt="" className={styles.avatarImage} />
+            )
+          : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={user ? styles.avatarActive : styles.avatarGhost}>
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21v-1a6 6 0 0 1 12 0v1" />
+              </svg>
+            )}
       </button>
 
       <div className={styles.actions}>
