@@ -6,6 +6,7 @@ interface LookupResult {
   status: DefinitionStatus
   meanings: DictionaryMeaning[]
   pronunciation?: string
+  pronunciationAudio?: string
 }
 
 async function fetchWithBackoff(url: string, maxRetries: number = 3): Promise<Response> {
@@ -49,10 +50,14 @@ export async function lookupWord(word: string): Promise<LookupResult> {
       || entry.phonetics?.find(p => p.text)?.text
       || undefined
 
+    const pronunciationAudio = entry.phonetics?.find(p => p.audio && p.audio.length > 0)?.audio
+      || undefined
+
     return {
       status: 'found',
       meanings: entry.meanings,
       pronunciation,
+      pronunciationAudio,
     }
   }
   catch {

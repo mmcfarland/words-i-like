@@ -111,6 +111,7 @@ export function useWordCollection(): WordCollectionResult {
     const updates = {
       definitions: result.meanings,
       pronunciation: result.pronunciation,
+      pronunciationAudio: result.pronunciationAudio,
       definitionStatus: result.status,
     }
 
@@ -165,6 +166,7 @@ export function useWordCollection(): WordCollectionResult {
     const updates = {
       definitions: result.meanings,
       pronunciation: result.pronunciation,
+      pronunciationAudio: result.pronunciationAudio,
       definitionStatus: result.status,
     }
     await wordStore.update(id, updates)

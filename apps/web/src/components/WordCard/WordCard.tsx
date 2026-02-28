@@ -10,6 +10,7 @@ interface WordCardProps {
   text: string
   meanings: DictionaryMeaning[]
   pronunciation?: string
+  pronunciationAudio?: string
   definitionStatus: DefinitionStatus
   wordId?: string
   examples?: string[]
@@ -25,7 +26,7 @@ function getExcerpt(meanings: DictionaryMeaning[]): string {
   return firstDef.length > 120 ? `${firstDef.slice(0, 117)}...` : firstDef
 }
 
-export function WordCard({ text, meanings, pronunciation, definitionStatus, wordId, examples: cachedExamples, onAssignToList, onExamplesGenerated, onCorrectWord }: WordCardProps) {
+export function WordCard({ text, meanings, pronunciation, pronunciationAudio, definitionStatus, wordId, examples: cachedExamples, onAssignToList, onExamplesGenerated, onCorrectWord }: WordCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [examples, setExamples] = useState<string[] | undefined>(cachedExamples)
   const [loadingExamples, setLoadingExamples] = useState(false)
@@ -40,6 +41,14 @@ export function WordCard({ text, meanings, pronunciation, definitionStatus, word
       getSuggestions(text, 3).then(setSuggestions).catch(() => {})
     }
   }, [definitionStatus, text])
+
+  const handlePlayAudio = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (pronunciationAudio) {
+      const audio = new Audio(pronunciationAudio)
+      audio.play().catch(() => {})
+    }
+  }, [pronunciationAudio])
 
   const handleGenerateExamples = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -72,7 +81,22 @@ export function WordCard({ text, meanings, pronunciation, definitionStatus, word
       <div className={styles.header}>
         <h2 className={styles.word}>{text}</h2>
         {pronunciation && (
-          <span className={styles.pronunciation}>{pronunciation}</span>
+          <span className={styles.pronunciation}>
+            {pronunciation}
+            {pronunciationAudio && (
+              <button
+                className={styles.audioButton}
+                onClick={handlePlayAudio}
+                type="button"
+                aria-label={`Listen to pronunciation of ${text}`}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+              </button>
+            )}
+          </span>
         )}
       </div>
 

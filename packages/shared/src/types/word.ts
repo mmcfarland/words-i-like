@@ -31,6 +31,7 @@ export interface Word {
   text: string
   definitions: DictionaryMeaning[]
   pronunciation?: string
+  pronunciationAudio?: string
   definitionStatus: DefinitionStatus
   examples?: string[]
   createdAt: number

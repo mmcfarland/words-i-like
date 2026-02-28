@@ -72,6 +72,7 @@ export function WordFeed({ words, expandedIds: _expandedIds, onToggle: _onToggle
                 text={word.text}
                 meanings={word.definitions}
                 pronunciation={word.pronunciation}
+                pronunciationAudio={word.pronunciationAudio}
                 definitionStatus={word.definitionStatus}
                 wordId={word.id}
                 examples={word.examples}
