@@ -50,7 +50,7 @@ A fully functional PWA deployed to Azure with:
 - [ ] **Phase 4: Local Persistence & Offline** — IndexedDB via Dexie.js, offline word saving, definition retry queue, PWA manifest
 - [ ] **Phase 5: Backend Foundation** — Fastify server, PostgreSQL schema, Prisma models, basic CRUD API
 - [ ] **Phase 6: Auth & Sync** — Google OAuth, JWT sessions, sync engine, smart merge on first sign-in
-- [ ] **Phase 7: Lists & Organization** — List CRUD, word tagging, feed filtering, bottom half-sheet UI
+- [ ] **Phase 7: Lists, Search & Organization** — List CRUD, word tagging, feed filtering, real-time search, bottom half-sheet UI
 - [ ] **Phase 8: AI Usage Examples** — Azure OpenAI integration, example generation endpoint, rate limiting, MSW stubs
 - [ ] **Phase 9: Sharing** — Public share links, read-only list view, share URL generation
 - [ ] **Phase 10: Azure Infrastructure & CI/CD** — Bicep templates, GitHub Actions, staging + production environments
@@ -358,9 +358,9 @@ Add Google OAuth authentication, JWT session management, and the sync engine wit
 
 ---
 
-## Phase 7: Lists & Organization
+## Phase 7: Lists, Search & Organization
 
-Add list creation, word tagging, feed filtering, and the bottom half-sheet list picker UI.
+Add list creation, word tagging, feed filtering, real-time search across words and definitions, and the bottom half-sheet list picker UI.
 
 ### Changes Required
 
@@ -372,29 +372,34 @@ Add list creation, word tagging, feed filtering, and the bottom half-sheet list 
 - **`apps/web/src/components/`**:
   - `ListPicker/ListPicker.tsx` — bottom half-sheet component (Framer Motion slide-up animation). Shows existing lists + "create new list" input. Dismissible by tap outside or swipe down.
   - `ListFilter/ListFilter.tsx` — list filter in top bar. Tapping opens half-sheet with list names. Selected list name shown as subtle label below top bar.
+  - `SearchOverlay/SearchOverlay.tsx` — full-width search field that slides down overlaying the input area (Framer Motion). Real-time filtering of word feed by word text and definition content. Dismiss returns to input mode and unfiltered feed.
   - Update `WordCard.tsx` — add "assign to list" action button in expanded state, triggers ListPicker
-  - Update `WordFeed.tsx` — accept filter prop, show only words matching selected list (or all)
+  - Update `WordFeed.tsx` — accept filter prop (list and/or search query), show only matching words
 
 - **`apps/web/src/db/`**:
   - Add `lists` and `wordLists` tables to Dexie schema
   - List CRUD and word-list tagging operations in local store
+  - Text search query support for words: search across `text` field and `definitions` JSON content via Dexie Collection.filter()
 
 - **`apps/web/src/hooks/`**:
   - `useLists.ts` — list state management, CRUD, sync with backend when signed in
-  - Update `useWordCollection.ts` — add list filter support
+  - `useSearch.ts` — search state management: query string, active/inactive state, debounced filtering
+  - Update `useWordCollection.ts` — add combined list + search filter support
 
 - **`packages/shared/src/types/`**:
   - List types and Zod schemas for list operations
 
-- **Unit tests**: List CRUD, word-list tagging (add to multiple lists, remove), feed filtering by list
-- **E2E test**: Create list → assign word → filter feed by list → verify only tagged words shown
+- **Unit tests**: List CRUD, word-list tagging (add to multiple lists, remove), feed filtering by list, search filtering across word text and definition content (including diacritics like café/naïveté), combined list + search filter
+- **E2E tests**: Create list → assign word → filter feed by list → verify only tagged words shown; Search by definition keyword → verify matching words shown
 
 ### Success Criteria
 
 #### Automated Verification:
 - [ ] `pnpm check:all` passes
 - [ ] Unit tests verify: list CRUD, word-list many-to-many operations, feed filtering logic
+- [ ] Unit tests verify: search filters words by text match and definition content match, handles diacritics correctly
 - [ ] E2E: create list → assign word → filter → correct words shown
+- [ ] E2E: search for keyword in definition → matching words shown, dismiss search → all words shown
 
 #### Manual Verification:
 - [ ] Half-sheet slides up smoothly from bottom with list options
@@ -402,6 +407,10 @@ Add list creation, word tagging, feed filtering, and the bottom half-sheet list 
 - [ ] Filtering the feed by a list shows only tagged words
 - [ ] "All Words" option resets the filter
 - [ ] A word assigned to multiple lists appears when filtering by any of them
+- [ ] Search icon in top bar activates search overlay sliding down over input area
+- [ ] Typing in search filters the feed in real time
+- [ ] Dismissing search restores the input area and unfiltered feed
+- [ ] Search works offline (queries local IndexedDB)
 
 ---
 
