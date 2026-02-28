@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { AppShell } from './components/AppShell'
 import { ListFilter } from './components/ListFilter'
 import { ListPicker } from './components/ListPicker'
+import { OfflineIndicator } from './components/OfflineIndicator'
 import { SearchOverlay } from './components/SearchOverlay'
 import { AuthTooltip } from './components/Tooltip'
 import { WordFeed } from './components/WordFeed'
@@ -114,6 +115,7 @@ export function App() {
       onSearchClick={activateSearch}
       onListClick={handleListClick}
     >
+      <OfflineIndicator />
       <SearchOverlay
         isActive={isSearchActive}
         query={searchQuery}

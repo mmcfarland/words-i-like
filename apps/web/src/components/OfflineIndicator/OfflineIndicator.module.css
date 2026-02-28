@@ -1,0 +1,7 @@
+.indicator {
+  text-align: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-subtle);
+}
