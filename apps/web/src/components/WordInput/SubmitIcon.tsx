@@ -10,7 +10,7 @@ export function SubmitIcon({ isSubmitting, disabled }: SubmitIconProps) {
   return (
     <button
       type="submit"
-      className={styles.button}
+      className={`${styles.button} ${isSubmitting ? styles.submitted : ''}`}
       disabled={disabled}
       aria-label="Submit word"
     >
@@ -27,16 +27,16 @@ export function SubmitIcon({ isSubmitting, disabled }: SubmitIconProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                initial={{ scale: 0, opacity: 0 }}
+                initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
               >
                 <motion.path
                   d="M5 13l4 4L19 7"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
+                  transition={{ duration: 0.6, delay: 0.15, ease: [0.33, 1, 0.68, 1] }}
                 />
               </motion.svg>
             )

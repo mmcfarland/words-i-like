@@ -40,7 +40,7 @@ export function WordInput({ onSubmit }: WordInputProps) {
     setIsSubmitting(true)
     onSubmit(value.trim())
     setValue('')
-    setTimeout(() => setIsSubmitting(false), 600)
+    setTimeout(() => setIsSubmitting(false), 1800)
   }, [value, onSubmit])
 
   return (

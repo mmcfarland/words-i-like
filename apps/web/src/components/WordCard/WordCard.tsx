@@ -78,6 +78,14 @@ export function WordCard({ text, meanings, pronunciation, definitionStatus, word
         <p className={styles.excerpt}>{excerpt}</p>
       )}
 
+      {!isExpanded && definitionStatus === 'found' && meanings.length > 0 && (
+        <div className={styles.expandHint}>
+          <span className={styles.expandDot} />
+          <span className={styles.expandDot} />
+          <span className={styles.expandDot} />
+        </div>
+      )}
+
       <AnimatePresence>
         {isExpanded && definitionStatus === 'found' && (
           <motion.div

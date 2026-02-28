@@ -32,6 +32,7 @@ export interface WordCollectionResult {
   words: Word[]
   filteredWords: Word[]
   addWord: (text: string) => Promise<{ isDuplicate: boolean }>
+  deleteWord: (id: string) => Promise<void>
   toggleExpanded: (id: string) => void
   expandedIds: Set<string>
   isLoading: boolean
@@ -138,6 +139,16 @@ export function useWordCollection(): WordCollectionResult {
     })
   }, [])
 
+  const deleteWord = useCallback(async (id: string) => {
+    await wordStore.delete(id)
+    setWords(prev => prev.filter(w => w.id !== id))
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }, [])
+
   const refreshWords = useCallback(async () => {
     const stored = await wordStore.getAll()
     setWords(stored)
@@ -152,6 +163,7 @@ export function useWordCollection(): WordCollectionResult {
     words,
     filteredWords,
     addWord,
+    deleteWord,
     toggleExpanded,
     expandedIds,
     isLoading,

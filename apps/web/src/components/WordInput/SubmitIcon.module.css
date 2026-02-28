@@ -7,9 +7,13 @@
   border-radius: var(--radius-full);
   color: var(--color-accent);
   transition:
-    color var(--transition-fast),
-    background-color var(--transition-fast);
+    color var(--transition-normal),
+    background-color var(--transition-normal);
   flex-shrink: 0;
+}
+
+.submitted {
+  color: var(--color-success);
 }
 
 .button:hover:not(:disabled) {

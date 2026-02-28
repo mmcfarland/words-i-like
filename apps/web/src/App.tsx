@@ -19,6 +19,7 @@ export function App() {
   const {
     filteredWords,
     addWord,
+    deleteWord,
     toggleExpanded,
     expandedIds,
     isLoading,
@@ -129,6 +130,7 @@ export function App() {
         words={filteredWords}
         expandedIds={expandedIds}
         onToggle={toggleExpanded}
+        onDelete={deleteWord}
         onAssignToList={handleAssignToList}
         onExamplesGenerated={handleExamplesGenerated}
       />
