@@ -11,6 +11,9 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
   "devDependencies": {
     "@words/eslint-config": "workspace:*",
     "typescript": "^5.7.0"

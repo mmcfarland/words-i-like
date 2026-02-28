@@ -1,11 +1,23 @@
 import process from 'node:process'
+import cors from '@fastify/cors'
 import Fastify from 'fastify'
+import { healthRoutes } from './routes/health'
+import { wordRoutes } from './routes/words'
 
-const app = Fastify({ logger: true })
+export function buildApp() {
+  const app = Fastify({ logger: true })
 
-app.get('/health', async () => {
-  return { status: 'ok', timestamp: new Date().toISOString() }
-})
+  app.register(cors, {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  })
+
+  app.register(healthRoutes)
+  app.register(wordRoutes, { prefix: '/api' })
+
+  return app
+}
+
+const app = buildApp()
 
 async function start() {
   const port = Number(process.env.PORT) || 3001
