@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useScrollState } from '../AppShell'
 import { SubmitIcon } from './SubmitIcon'
 import styles from './WordInput.module.css'
@@ -28,6 +28,14 @@ export function WordInput({ onSubmit }: WordInputProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const { isScrolled } = useScrollState()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Re-focus input when tab/window regains focus
+  useEffect(() => {
+    const handleFocus = () => inputRef.current?.focus()
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [])
 
   const handleSubmit = useCallback((e: FormEvent) => {
     e.preventDefault()
@@ -47,6 +55,7 @@ export function WordInput({ onSubmit }: WordInputProps) {
     <div className={`${styles.container} ${isScrolled ? styles.compact : styles.prominent}`}>
       <form className={styles.form} onSubmit={handleSubmit}>
         <input
+          ref={inputRef}
           className={styles.input}
           type="text"
           autoFocus
