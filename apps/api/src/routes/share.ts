@@ -102,11 +102,28 @@ export async function shareRoutes(app: FastifyInstance) {
   app.post('/api/lists/:id/share', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const { userId } = request.user
+    const body = (request.body || {}) as {
+      listName?: string
+      words?: Array<{
+        text?: string
+        definitions?: unknown[]
+        pronunciation?: string
+        definitionStatus?: string
+      }>
+    }
+
     const list = await prisma.list.findFirst({
       where: { id, userId },
     })
 
-    if (!list) {
+    if (list) {
+      const shareToken = await getOrCreateShareToken(id, list.shareToken)
+      return { shareToken, url: `/shared/${shareToken}` }
+    }
+
+    // List doesn't exist on server — create a snapshot from client data
+    const listName = body.listName?.trim()
+    if (!listName) {
       return reply.status(404).send({
         error: 'Not Found',
         message: 'List not found',
@@ -114,7 +131,49 @@ export async function shareRoutes(app: FastifyInstance) {
       })
     }
 
-    const shareToken = await getOrCreateShareToken(id, list.shareToken)
+    const shareToken = randomUUID()
+    const newList = await prisma.list.create({
+      data: {
+        id,
+        name: listName,
+        userId,
+        shareToken,
+      },
+    })
+
+    const fallbackWords = Array.isArray(body.words) ? body.words : []
+    let wordIndex = 0
+    for (const word of fallbackWords) {
+      const text = word.text?.trim()
+      if (!text)
+        continue
+
+      // Check if user already has this word on server
+      const existing = await prisma.word.findFirst({
+        where: { text, userId },
+      })
+
+      const wordId = existing?.id ?? `${newList.id}-shared-${wordIndex++}`
+      if (!existing) {
+        await prisma.word.create({
+          data: {
+            id: wordId,
+            text,
+            definitions: (Array.isArray(word.definitions) ? word.definitions : []) as Parameters<typeof prisma.word.create>[0]['data']['definitions'],
+            pronunciation: word.pronunciation || null,
+            definitionStatus: typeof word.definitionStatus === 'string' ? word.definitionStatus : 'found',
+            userId,
+          },
+        })
+      }
+
+      await prisma.wordList.upsert({
+        where: { wordId_listId: { wordId, listId: newList.id } },
+        update: {},
+        create: { wordId, listId: newList.id },
+      })
+    }
+
     return { shareToken, url: `/shared/${shareToken}` }
   })
 
