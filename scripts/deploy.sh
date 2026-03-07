@@ -301,7 +301,7 @@ fi
 MIGRATION_OK=0
 MIGRATION_OUTPUT=""
 for attempt in {1..12}; do
-  if MIGRATION_OUTPUT=$(cd "$PROJECT_ROOT" && DATABASE_URL="$PROD_DATABASE_URL" pnpm --filter @words/db exec prisma migrate deploy 2>&1); then
+  if MIGRATION_OUTPUT=$(cd "$PROJECT_ROOT" && DATABASE_URL="$PROD_DATABASE_URL" pnpm --filter @words/db exec prisma db push --accept-data-loss 2>&1); then
     MIGRATION_OK=1
     break
   fi
