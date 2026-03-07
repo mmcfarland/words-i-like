@@ -130,6 +130,8 @@
     color var(--transition-fast),
     background-color var(--transition-fast);
   flex-shrink: 0;
+  margin-left: auto;
+  align-self: center;
 }
 
 .addButton:hover {
