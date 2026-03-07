@@ -44,6 +44,10 @@ export const wordStore = {
     await db.words.delete(id)
   },
 
+  async deleteByText(text: string): Promise<void> {
+    await db.words.where('text').equalsIgnoreCase(text).delete()
+  },
+
   async findByText(text: string): Promise<Word | undefined> {
     const record = await db.words.where('text').equalsIgnoreCase(text).first()
     return record ? toWord(record) : undefined
@@ -52,5 +56,9 @@ export const wordStore = {
   async getPending(): Promise<Word[]> {
     const records = await db.words.where('definitionStatus').equals('pending').toArray()
     return records.map(toWord)
+  },
+
+  async clearAll(): Promise<void> {
+    await db.words.clear()
   },
 }

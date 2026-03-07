@@ -2,7 +2,9 @@ import type { Word } from '@words/shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { wordStore } from '../db'
 import { listStore } from '../db/listStore'
+import { analytics } from '../services/analytics'
 import { lookupWord } from '../services/dictionary'
+import { queueDeletedWord } from '../services/sync'
 
 let nextId = 0
 function generateId(): string {
@@ -38,6 +40,7 @@ export interface WordCollectionResult {
   expandedIds: Set<string>
   isLoading: boolean
   refreshWords: () => Promise<void>
+  localChangeVersion: number
   filterByListId: string | null
   setFilterByListId: (id: string | null) => void
   searchQuery: string
@@ -51,6 +54,7 @@ export function useWordCollection(): WordCollectionResult {
   const [filterByListId, setFilterByListId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [listWordIds, setListWordIds] = useState<Set<string> | null>(null)
+  const [localChangeVersion, setLocalChangeVersion] = useState(0)
 
   // Load words from IndexedDB on mount
   useEffect(() => {
@@ -84,6 +88,10 @@ export function useWordCollection(): WordCollectionResult {
     return result
   }, [words, listWordIds, searchQuery])
 
+  const markLocalChange = useCallback(() => {
+    setLocalChangeVersion(prev => prev + 1)
+  }, [])
+
   const addWord = useCallback(async (text: string): Promise<{ isDuplicate: boolean }> => {
     const existing = await wordStore.findByText(text.trim())
 
@@ -95,7 +103,7 @@ export function useWordCollection(): WordCollectionResult {
     const now = Date.now()
     const newWord: Word = {
       id: generateId(),
-      text: text.trim(),
+      text: text.trim().toLowerCase(),
       definitions: [],
       definitionStatus: 'pending',
       createdAt: now,
@@ -105,14 +113,21 @@ export function useWordCollection(): WordCollectionResult {
     // Save to IndexedDB immediately
     await wordStore.add(newWord)
     setWords(prev => [newWord, ...prev])
+    markLocalChange()
 
     // Fetch definition
     const result = await lookupWord(text)
+    if (result.status === 'found')
+      analytics.definitionFound('primary')
+    else if (result.status === 'not_found')
+      analytics.definitionNotFound()
     const updates = {
       definitions: result.meanings,
       pronunciation: result.pronunciation,
       pronunciationAudio: result.pronunciationAudio,
       definitionStatus: result.status,
+      sourceUrl: result.sourceUrl,
+      ...(result.examples?.length ? { examples: result.examples } : {}),
     }
 
     // Update IndexedDB
@@ -124,9 +139,10 @@ export function useWordCollection(): WordCollectionResult {
           : w,
       ),
     )
+    markLocalChange()
 
     return { isDuplicate: false }
-  }, [])
+  }, [markLocalChange])
 
   const toggleExpanded = useCallback((id: string) => {
     setExpandedIds((prev) => {
@@ -142,16 +158,22 @@ export function useWordCollection(): WordCollectionResult {
   }, [])
 
   const deleteWord = useCallback(async (id: string) => {
+    const existing = words.find(word => word.id === id)
+    if (existing)
+      queueDeletedWord(existing.text)
     await wordStore.delete(id)
+    analytics.wordDeleted()
     setWords(prev => prev.filter(w => w.id !== id))
     setExpandedIds((prev) => {
       const next = new Set(prev)
       next.delete(id)
       return next
     })
-  }, [])
+    markLocalChange()
+  }, [words, markLocalChange])
 
   const correctWord = useCallback(async (id: string, correctedText: string) => {
+    analytics.wordCorrected()
     // Update the word text and re-lookup definition
     await wordStore.update(id, { text: correctedText, definitionStatus: 'pending', definitions: [] })
     setWords(prev =>
@@ -161,6 +183,7 @@ export function useWordCollection(): WordCollectionResult {
           : w,
       ),
     )
+    markLocalChange()
 
     const result = await lookupWord(correctedText)
     const updates = {
@@ -168,6 +191,8 @@ export function useWordCollection(): WordCollectionResult {
       pronunciation: result.pronunciation,
       pronunciationAudio: result.pronunciationAudio,
       definitionStatus: result.status,
+      sourceUrl: result.sourceUrl,
+      ...(result.examples?.length ? { examples: result.examples } : {}),
     }
     await wordStore.update(id, updates)
     setWords(prev =>
@@ -177,7 +202,8 @@ export function useWordCollection(): WordCollectionResult {
           : w,
       ),
     )
-  }, [])
+    markLocalChange()
+  }, [markLocalChange])
 
   const refreshWords = useCallback(async () => {
     const stored = await wordStore.getAll()
@@ -199,6 +225,7 @@ export function useWordCollection(): WordCollectionResult {
     expandedIds,
     isLoading,
     refreshWords,
+    localChangeVersion,
     filterByListId,
     setFilterByListId,
     searchQuery,

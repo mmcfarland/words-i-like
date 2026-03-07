@@ -10,13 +10,16 @@ export interface AiExamplesResponse {
 }
 
 export const aiService = {
-  async generateExamples(wordId: string): Promise<AiExamplesResponse> {
+  async generateExamples(wordId: string, wordText?: string): Promise<AiExamplesResponse> {
+    const normalizedText = wordText?.trim()
+    const hasBody = Boolean(normalizedText)
     const response = await fetch(`${API_URL}/api/words/${wordId}/examples`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         ...authService.getAuthHeaders(),
+        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
       },
+      ...(hasBody ? { body: JSON.stringify({ text: normalizedText }) } : {}),
     })
 
     if (!response.ok) {

@@ -27,4 +27,14 @@ resource database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-12-0
   name: 'words'
 }
 
-output connectionString string = 'postgresql://wordsadmin:${adminPassword}@${postgresServer.properties.fullyQualifiedDomainName}:5432/words'
+// Allow Azure services (Container Apps) to connect
+resource firewallAllowAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-12-01-preview' = {
+  parent: postgresServer
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+
+output host string = postgresServer.properties.fullyQualifiedDomainName

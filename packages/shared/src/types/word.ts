@@ -34,6 +34,8 @@ export interface Word {
   pronunciationAudio?: string
   definitionStatus: DefinitionStatus
   examples?: string[]
+  sourceUrl?: string
+  shareToken?: string
   createdAt: number
   updatedAt: number
 }

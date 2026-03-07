@@ -1,23 +1,81 @@
-import { useCallback, useState } from 'react'
+import type { ListRecord } from './db'
+import type { Word } from '@words/shared'
+import { useCallback, useEffect, useState } from 'react'
 import { AppShell } from './components/AppShell'
-import { ListFilter } from './components/ListFilter'
+import { IntroCard } from './components/IntroCard'
 import { ListPicker } from './components/ListPicker'
 import { ListSelector } from './components/ListSelector'
 import { OfflineIndicator } from './components/OfflineIndicator'
 import { SearchOverlay } from './components/SearchOverlay'
+import { Toast } from './components/Toast'
 import { AuthTooltip } from './components/Tooltip'
 import { WordFeed } from './components/WordFeed'
 import { WordInput } from './components/WordInput'
-import { wordStore } from './db'
+import { listStore, wordStore } from './db'
 import { useAuth } from './hooks/useAuth'
 import { useDefinitionRetry } from './hooks/useDefinitionRetry'
 import { useLists } from './hooks/useLists'
 import { useSearch } from './hooks/useSearch'
 import { useSync } from './hooks/useSync'
+import { authService } from './services/auth'
+import { analytics } from './services/analytics'
 import { useWordCollection } from './hooks/useWordCollection'
 
-export function App() {
+const AVATAR_POPOVER_SEEN_KEY = 'words-avatar-popover-seen'
+const SWIPE_HINT_SEEN_KEY = 'words-swipe-hint-seen'
+const AUTH_TOOLTIP_TEN_WORDS_DISMISSED_KEY = 'words-tooltip-dismissed-10-words'
+
+interface AppProps {
+  initialListId?: string | null
+}
+
+async function shareCurrentCollection(list: ListRecord | null): Promise<string | null> {
+  try {
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    const allWords = await wordStore.getAll()
+    const listId = list?.id ?? `all-words-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const listName = list?.name ?? 'All Words'
+    const words = list
+      ? (await listStore.getWordIdsForList(list.id))
+          .map(id => allWords.find(word => word.id === id))
+          .filter((word): word is NonNullable<typeof word> => Boolean(word))
+          .map(word => ({
+            text: word.text,
+            definitions: word.definitions,
+            pronunciation: word.pronunciation,
+            definitionStatus: word.definitionStatus,
+          }))
+      : allWords.map(word => ({
+          text: word.text,
+          definitions: word.definitions,
+          pronunciation: word.pronunciation,
+          definitionStatus: word.definitionStatus,
+        }))
+
+    const response = await fetch(`${apiBase}/api/lists/${listId}/share`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authService.getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        listName,
+        words,
+      }),
+    })
+    if (!response.ok)
+      return null
+    const data = await response.json()
+    return `${window.location.origin}/shared/${data.shareToken}`
+  }
+  catch {
+    return null
+  }
+}
+
+export function App({ initialListId = null }: AppProps) {
   const {
+    words,
     filteredWords,
     addWord,
     deleteWord,
@@ -26,6 +84,7 @@ export function App() {
     expandedIds,
     isLoading,
     refreshWords,
+    localChangeVersion,
     filterByListId,
     setFilterByListId,
     searchQuery,
@@ -35,6 +94,7 @@ export function App() {
   const {
     lists,
     createList,
+    deleteList,
     assignWordToList,
     removeWordFromList,
     getListsForWord,
@@ -48,9 +108,22 @@ export function App() {
 
   const [listPickerWordId, setListPickerWordId] = useState<string | null>(null)
   const [showListSelector, setShowListSelector] = useState(false)
+  const [wordListNames, setWordListNames] = useState<Record<string, string[]>>({})
+  const [showAvatarPopover, setShowAvatarPopover] = useState(false)
+  const [showSwipeHint, setShowSwipeHint] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [shareFailed, setShareFailed] = useState(false)
+  const [deletingActiveList, setDeletingActiveList] = useState(false)
+  const [deleteToast, setDeleteToast] = useState<{ word: Word, timeoutId: number } | null>(null)
+  const [hasAppliedListRoute, setHasAppliedListRoute] = useState(false)
+  const showTenWordAuthTooltip = !isAuthenticated && !isSearchActive && words.length >= 10
+  const selectedList = lists.find(l => l.id === filterByListId) ?? null
+  const visibleWordCount = selectedList ? filteredWords.length : words.length
+  const topBarListName = selectedList?.name ?? 'All Words'
 
   useDefinitionRetry(refreshWords)
-  useSync(isAuthenticated, refreshWords)
+  useSync(isAuthenticated, refreshWords, localChangeVersion)
 
   // Keep word collection search in sync with debounced query
   const handleSearchQueryChange = useCallback((query: string) => {
@@ -64,13 +137,45 @@ export function App() {
   }, [debouncedQuery, setSearchQuery])
 
   const handleSubmit = useCallback(async (text: string) => {
-    await addWord(text)
-  }, [addWord])
+    const trimmedText = text.trim()
+    if (!trimmedText)
+      return
+    const hadNoWords = words.length === 0
+    const result = await addWord(trimmedText)
+
+    if (!result.isDuplicate) {
+      analytics.wordAdded(trimmedText)
+      // Scroll to top so the new word is immediately visible
+      document.querySelector('main')?.scrollTo?.({ top: 0, behavior: 'instant' as ScrollBehavior })
+    }
+
+    if (selectedList) {
+      const targetWord = await wordStore.findByText(trimmedText)
+      if (targetWord) {
+        await assignWordToList(targetWord.id, selectedList.id)
+        await refreshWords()
+      }
+    }
+
+    if (hadNoWords && !result.isDuplicate && localStorage.getItem(SWIPE_HINT_SEEN_KEY) !== 'true') {
+      localStorage.setItem(SWIPE_HINT_SEEN_KEY, 'true')
+      setShowSwipeHint(true)
+    }
+    if (!isAuthenticated && hadNoWords && !result.isDuplicate && localStorage.getItem(AVATAR_POPOVER_SEEN_KEY) !== 'true') {
+      localStorage.setItem(AVATAR_POPOVER_SEEN_KEY, 'true')
+      setShowAvatarPopover(true)
+    }
+  }, [addWord, assignWordToList, isAuthenticated, refreshWords, selectedList, words.length])
 
   const handleSearchDismiss = useCallback(() => {
     deactivateSearch()
     setSearchQuery('')
   }, [deactivateSearch, setSearchQuery])
+
+  const handleDismissAvatarPopover = useCallback(() => {
+    localStorage.setItem(AVATAR_POPOVER_SEEN_KEY, 'true')
+    setShowAvatarPopover(false)
+  }, [])
 
   const handleAssignToList = useCallback((wordId: string) => {
     setListPickerWordId(wordId)
@@ -95,16 +200,173 @@ export function App() {
     setShowListSelector(false)
   }, [setFilterByListId])
 
-  const handleClearListFilter = useCallback(() => {
-    setFilterByListId(null)
-  }, [setFilterByListId])
+  const handleDeleteList = useCallback(async (listId: string, listName: string) => {
+    const confirmed = window.confirm(`Delete "${listName}"? This only removes the list and keeps your words.`)
+    if (!confirmed)
+      return
+    await deleteList(listId)
+    analytics.listDeleted()
+    if (filterByListId === listId)
+      setFilterByListId(null)
+  }, [deleteList, filterByListId, setFilterByListId])
 
   const handleExamplesGenerated = useCallback(async (wordId: string, examples: string[]) => {
     await wordStore.update(wordId, { examples })
     refreshWords()
   }, [refreshWords])
 
-  const selectedList = lists.find(l => l.id === filterByListId) ?? null
+  const handleDeleteWord = useCallback(async (wordId: string) => {
+    const wordToDelete = words.find(w => w.id === wordId)
+    if (!wordToDelete)
+      return
+
+    if (deleteToast) {
+      clearTimeout(deleteToast.timeoutId)
+      setDeleteToast(null)
+    }
+
+    await deleteWord(wordId)
+
+    const timeoutId = window.setTimeout(() => setDeleteToast(null), 5000)
+    setDeleteToast({ word: wordToDelete, timeoutId })
+  }, [words, deleteWord, deleteToast])
+
+  const handleUndoDelete = useCallback(async () => {
+    if (!deleteToast)
+      return
+    clearTimeout(deleteToast.timeoutId)
+    await wordStore.add(deleteToast.word)
+    refreshWords()
+    setDeleteToast(null)
+  }, [deleteToast, refreshWords])
+
+  useEffect(() => {
+    if (hasAppliedListRoute)
+      return
+    if (initialListId)
+      setFilterByListId(initialListId)
+    setHasAppliedListRoute(true)
+  }, [hasAppliedListRoute, initialListId, setFilterByListId])
+
+  useEffect(() => {
+    if (!hasAppliedListRoute)
+      return
+    const nextPath = filterByListId ? `/lists/${encodeURIComponent(filterByListId)}` : '/'
+    const nextUrl = `${nextPath}${window.location.hash}`
+    const currentUrl = `${window.location.pathname}${window.location.hash}`
+    if (nextUrl !== currentUrl)
+      window.history.replaceState({}, '', nextUrl)
+  }, [filterByListId, hasAppliedListRoute])
+
+  const handleShareFromTopBar = useCallback(async () => {
+    if (sharing)
+      return
+    setShareFailed(false)
+    setSharing(true)
+    const url = await shareCurrentCollection(selectedList)
+    setSharing(false)
+    if (url) {
+      analytics.listShared()
+      try {
+        await navigator.clipboard.writeText(url)
+        setShareCopied(true)
+        setTimeout(() => setShareCopied(false), 2000)
+      }
+      catch {
+        setShareFailed(true)
+        setTimeout(() => setShareFailed(false), 2500)
+      }
+      return
+    }
+    setShareFailed(true)
+    setTimeout(() => setShareFailed(false), 2500)
+  }, [selectedList, sharing])
+
+  const handleShareWord = useCallback(async (wordId: string) => {
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+      const response = await fetch(`${apiBase}/api/words/${wordId}/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authService.getAuthHeaders(),
+        },
+      })
+      if (!response.ok)
+        return
+      const data = await response.json()
+      const url = `${window.location.origin}/shared/${data.shareToken}`
+      analytics.wordShared()
+      try {
+        await navigator.clipboard.writeText(url)
+        setShareCopied(true)
+        setTimeout(() => setShareCopied(false), 2000)
+      }
+      catch {
+        setShareFailed(true)
+        setTimeout(() => setShareFailed(false), 2500)
+      }
+    }
+    catch {
+      setShareFailed(true)
+      setTimeout(() => setShareFailed(false), 2500)
+    }
+  }, [])
+
+  const handleDeleteFromTopBar = useCallback(async () => {
+    if (!selectedList || deletingActiveList)
+      return
+    setDeletingActiveList(true)
+    try {
+      await handleDeleteList(selectedList.id, selectedList.name)
+    }
+    finally {
+      setDeletingActiveList(false)
+    }
+  }, [selectedList, deletingActiveList, handleDeleteList])
+
+  useEffect(() => {
+    let cancelled = false
+    const listNameById = new Map(lists.map(list => [list.id, list.name]))
+
+    Promise.all(filteredWords.map(async (word) => {
+      const ids = await getListsForWord(word.id)
+      const names = ids
+        .map(id => listNameById.get(id))
+        .filter((name): name is string => Boolean(name))
+      return [word.id, names] as const
+    }))
+      .then((entries) => {
+        if (cancelled)
+          return
+        setWordListNames(Object.fromEntries(entries))
+      })
+      .catch(() => {
+        if (!cancelled)
+          setWordListNames({})
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [filteredWords, lists, getListsForWord])
+
+  useEffect(() => {
+    if (isAuthenticated)
+      setShowAvatarPopover(false)
+  }, [isAuthenticated])
+
+  // Refresh word list when auth state changes (e.g. logout clears IndexedDB)
+  useEffect(() => {
+    refreshWords()
+  }, [isAuthenticated, refreshWords])
+
+  useEffect(() => {
+    if (!showSwipeHint)
+      return
+    const timeout = window.setTimeout(() => setShowSwipeHint(false), 1400)
+    return () => window.clearTimeout(timeout)
+  }, [showSwipeHint])
 
   if (isLoading) {
     return null
@@ -113,10 +375,20 @@ export function App() {
   return (
     <AppShell
       user={user}
+      activeListName={topBarListName}
+      activeListWordCount={visibleWordCount}
+      onShareClick={topBarListName ? handleShareFromTopBar : undefined}
+      onDeleteActiveList={selectedList ? () => { void handleDeleteFromTopBar() } : undefined}
+      isSharing={sharing}
+      isDeletingActiveList={deletingActiveList}
+      shareCopied={shareCopied}
+      shareFailed={shareFailed}
       onSignIn={signIn}
       onSignOut={signOut}
       onSearchClick={activateSearch}
       onListClick={handleListClick}
+      avatarPopoverMessage={showAvatarPopover && !isAuthenticated ? 'Your words are only saved on this device. Log in to save them to your account.' : null}
+      onDismissAvatarPopover={handleDismissAvatarPopover}
     >
       <OfflineIndicator />
       <SearchOverlay
@@ -125,17 +397,25 @@ export function App() {
         onQueryChange={handleSearchQueryChange}
         onDismiss={handleSearchDismiss}
       />
-      <ListFilter list={selectedList} onClear={handleClearListFilter} />
       {!isSearchActive && <WordInput onSubmit={handleSubmit} />}
-      {!isAuthenticated && !isSearchActive && <AuthTooltip />}
+      {!isSearchActive && words.length === 0 && <IntroCard />}
+      {showTenWordAuthTooltip && (
+        <AuthTooltip
+          onSignIn={signIn}
+          dismissStorageKey={AUTH_TOOLTIP_TEN_WORDS_DISMISSED_KEY}
+        />
+      )}
       <WordFeed
         words={filteredWords}
+        wordListNames={wordListNames}
+        showSwipeHint={showSwipeHint}
         expandedIds={expandedIds}
         onToggle={toggleExpanded}
-        onDelete={deleteWord}
+        onDelete={handleDeleteWord}
         onCorrectWord={correctWord}
         onAssignToList={handleAssignToList}
         onExamplesGenerated={handleExamplesGenerated}
+        onShareWord={handleShareWord}
       />
 
       {/* ListPicker for assigning a word to lists */}
@@ -160,6 +440,18 @@ export function App() {
           lists={lists}
           activeListId={filterByListId}
           onSelect={handleSelectListFilter}
+          onDeleteList={handleDeleteList}
+        />
+      )}
+
+      {deleteToast && (
+        <Toast
+          message={`"${deleteToast.word.text}" deleted`}
+          action={{ label: 'Undo', onClick: () => { void handleUndoDelete() } }}
+          onDismiss={() => {
+            clearTimeout(deleteToast.timeoutId)
+            setDeleteToast(null)
+          }}
         />
       )}
     </AppShell>

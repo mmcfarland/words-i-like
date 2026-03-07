@@ -8,6 +8,10 @@ interface RateLimitResult {
   limit: number
 }
 
+function toUTCDateString(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
 export async function checkAiRateLimit(userId: string): Promise<RateLimitResult> {
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) {
@@ -17,8 +21,8 @@ export async function checkAiRateLimit(userId: string): Promise<RateLimitResult>
   const now = new Date()
   const resetAt = new Date(user.dailyAiUsageResetAt)
 
-  // Reset counter if a new day has started
-  if (now.toDateString() !== resetAt.toDateString()) {
+  // Reset counter if a new UTC day has started
+  if (toUTCDateString(now) !== toUTCDateString(resetAt)) {
     await prisma.user.update({
       where: { id: userId },
       data: { dailyAiUsageCount: 0, dailyAiUsageResetAt: now },

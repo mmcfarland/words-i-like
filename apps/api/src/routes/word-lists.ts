@@ -1,12 +1,10 @@
 import type { FastifyInstance } from 'fastify'
 import { AssignWordToListsSchema } from '@words/shared'
-import { listService } from '../services/list'
-
-const DEMO_USER_ID = 'demo-user-id'
+import { listService } from '../services/list.js'
 
 export async function wordListRoutes(app: FastifyInstance) {
   // Assign word to lists
-  app.post('/words/:id/lists', async (request, reply) => {
+  app.post('/words/:id/lists', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id: wordId } = request.params as { id: string }
     const parsed = AssignWordToListsSchema.safeParse(request.body)
     if (!parsed.success) {
@@ -17,8 +15,9 @@ export async function wordListRoutes(app: FastifyInstance) {
       })
     }
 
+    const { userId } = request.user
     const results = await Promise.all(
-      parsed.data.listIds.map(listId => listService.assignWord(wordId, listId, DEMO_USER_ID)),
+      parsed.data.listIds.map(listId => listService.assignWord(wordId, listId, userId)),
     )
 
     if (results.includes(null)) {
@@ -33,9 +32,10 @@ export async function wordListRoutes(app: FastifyInstance) {
   })
 
   // Remove word from a list
-  app.delete('/words/:id/lists/:listId', async (request, reply) => {
+  app.delete('/words/:id/lists/:listId', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id: wordId, listId } = request.params as { id: string, listId: string }
-    const result = await listService.removeWord(wordId, listId, DEMO_USER_ID)
+    const { userId } = request.user
+    const result = await listService.removeWord(wordId, listId, userId)
 
     if (result === null) {
       return reply.status(404).send({
@@ -49,9 +49,10 @@ export async function wordListRoutes(app: FastifyInstance) {
   })
 
   // Get lists for a word
-  app.get('/words/:id/lists', async (request, reply) => {
+  app.get('/words/:id/lists', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id: wordId } = request.params as { id: string }
-    const result = await listService.getWordLists(wordId, DEMO_USER_ID)
+    const { userId } = request.user
+    const result = await listService.getWordLists(wordId, userId)
 
     if (result === null) {
       return reply.status(404).send({

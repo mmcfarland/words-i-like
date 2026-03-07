@@ -9,6 +9,19 @@
   margin: 0 auto;
 }
 
+.homeLink {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  color: var(--color-accent-hover);
+}
+
 .header {
   text-align: center;
   margin-bottom: var(--space-8);
@@ -37,6 +50,12 @@
   max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.wordCard:hover {
+  background-color: rgba(255, 255, 255, 0.92);
 }
 
 .word {
@@ -51,14 +70,38 @@
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   color: var(--color-text-muted);
-  margin-left: var(--space-3);
 }
 
 .cardHeader {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   flex-wrap: wrap;
+}
+
+.pronunciationWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.audioButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  color: var(--color-accent);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.audioButton:hover {
+  color: var(--color-accent-hover);
+  background-color: var(--color-accent-soft);
 }
 
 .excerpt {
@@ -70,6 +113,51 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.expanded {
+  margin-top: var(--space-4);
+}
+
+.meaning {
+  margin-bottom: var(--space-4);
+}
+
+.meaning:last-child {
+  margin-bottom: 0;
+}
+
+.pos {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  margin-bottom: var(--space-2);
+}
+
+.definitions {
+  padding-left: var(--space-5);
+  list-style: decimal;
+}
+
+.definition {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.definition:last-child {
+  margin-bottom: 0;
+}
+
+.example {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 .noDefinition {

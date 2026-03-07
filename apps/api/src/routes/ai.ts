@@ -1,16 +1,18 @@
 import type { FastifyInstance } from 'fastify'
-import { checkAiRateLimit, incrementAiUsage } from '../middleware/rateLimit'
-import { generateExamples } from '../services/ai'
-import { wordService } from '../services/word'
+import { checkAiRateLimit, incrementAiUsage } from '../middleware/rateLimit.js'
+import { generateExamples } from '../services/ai.js'
+import { wordService } from '../services/word.js'
 
 export async function aiRoutes(app: FastifyInstance) {
   app.post('/words/:id/examples', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string }
+    const { text } = (request.body ?? {}) as { text?: string }
     const { userId } = request.user
 
-    // Verify word exists and belongs to user
+    // Prefer server word lookup, but allow client text fallback for local-only IDs.
     const word = await wordService.getById(id, userId)
-    if (!word) {
+    const targetText = word?.text ?? text?.trim()
+    if (!targetText) {
       return reply.status(404).send({
         error: 'Not Found',
         message: 'Word not found',
@@ -30,17 +32,27 @@ export async function aiRoutes(app: FastifyInstance) {
       })
     }
 
-    // Generate examples
-    const result = await generateExamples(word.text)
+    try {
+      // Generate examples
+      const result = await generateExamples(targetText)
 
-    // Increment usage count
-    await incrementAiUsage(userId)
+      // Increment usage count
+      await incrementAiUsage(userId)
 
-    return {
-      examples: result.examples,
-      source: result.source,
-      remaining: rateLimit.remaining - 1,
-      limit: rateLimit.limit,
+      return {
+        examples: result.examples,
+        source: result.source,
+        remaining: rateLimit.remaining - 1,
+        limit: rateLimit.limit,
+      }
+    }
+    catch (error) {
+      request.log.error({ err: error, userId, wordId: id }, 'AI example generation failed')
+      return reply.status(503).send({
+        error: 'Service Unavailable',
+        message: 'AI examples are temporarily unavailable. Please try again later.',
+        statusCode: 503,
+      })
     }
   })
 }

@@ -16,6 +16,36 @@
   touch-action: pan-y;
 }
 
+.swipeHandle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-placeholder);
+  opacity: 0.28;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.swipeHandle::before {
+  content: '';
+  width: 2px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  box-shadow:
+    -4px 0 0 currentColor,
+    4px 0 0 currentColor;
+}
+
+.swipeHandle:hover {
+  opacity: 0.48;
+}
+
 .deleteIndicator {
   position: absolute;
   right: var(--space-4);

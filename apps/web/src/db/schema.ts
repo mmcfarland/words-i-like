@@ -10,6 +10,7 @@ export interface WordRecord {
   pronunciationAudio?: string
   definitionStatus: DefinitionStatus
   examples?: string[]
+  sourceUrl?: string
   createdAt: number
   updatedAt: number
   syncedAt?: number

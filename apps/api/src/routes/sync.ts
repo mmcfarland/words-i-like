@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { SyncRequestSchema } from '@words/shared'
-import { syncService } from '../services/sync'
+import { syncService } from '../services/sync.js'
 
 export async function syncRoutes(app: FastifyInstance) {
   // POST /sync — push local words, get merged result
@@ -15,7 +15,7 @@ export async function syncRoutes(app: FastifyInstance) {
     }
 
     const { userId } = request.user
-    return syncService.mergeWords(userId, parsed.data.words)
+    return syncService.mergeWords(userId, parsed.data)
   })
 
   // GET /sync — pull server words since timestamp

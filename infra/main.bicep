@@ -10,6 +10,17 @@ param location string = resourceGroup().location
 @secure()
 param dbAdminPassword string
 
+@description('JWT signing secret for API auth')
+@secure()
+param jwtSecret string
+
+@description('Google OAuth client ID')
+param googleClientId string = ''
+
+@description('Google OAuth client secret')
+@secure()
+param googleClientSecret string = ''
+
 module postgres 'modules/postgres.bicep' = {
   name: 'postgres'
   params: {
@@ -19,12 +30,28 @@ module postgres 'modules/postgres.bicep' = {
   }
 }
 
+module openai 'modules/openai.bicep' = {
+  name: 'openai'
+  params: {
+    environment: environment
+    location: location
+  }
+}
+
+var databaseUrl = 'postgresql://wordsadmin:${dbAdminPassword}@${postgres.outputs.host}:5432/words?sslmode=require'
+
 module containerApp 'modules/containerApp.bicep' = {
   name: 'containerApp'
   params: {
     environment: environment
     location: location
-    databaseUrl: postgres.outputs.connectionString
+    databaseUrl: databaseUrl
+    openaiEndpoint: openai.outputs.endpoint
+    openaiAccountName: openai.outputs.accountName
+    openaiDeployment: openai.outputs.deploymentName
+    jwtSecret: jwtSecret
+    googleClientId: googleClientId
+    googleClientSecret: googleClientSecret
   }
 }
 
@@ -33,6 +60,9 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   params: {
     environment: environment
     location: location
-    apiUrl: containerApp.outputs.apiUrl
   }
 }
+
+// ── Outputs ──
+output apiUrl string = containerApp.outputs.apiUrl
+output swaUrl string = staticWebApp.outputs.swaUrl

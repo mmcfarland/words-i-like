@@ -1,21 +1,22 @@
 import process from 'node:process'
 import cors from '@fastify/cors'
 import Fastify from 'fastify'
-import authPlugin from './plugins/auth'
-import { aiRoutes } from './routes/ai'
-import { authRoutes } from './routes/auth'
-import { healthRoutes } from './routes/health'
-import { listRoutes } from './routes/lists'
-import { shareRoutes } from './routes/share'
-import { syncRoutes } from './routes/sync'
-import { wordListRoutes } from './routes/word-lists'
-import { wordRoutes } from './routes/words'
+import authPlugin from './plugins/auth.js'
+import { aiRoutes } from './routes/ai.js'
+import { authRoutes } from './routes/auth.js'
+import { healthRoutes } from './routes/health.js'
+import { listRoutes } from './routes/lists.js'
+import { shareRoutes } from './routes/share.js'
+import { syncRoutes } from './routes/sync.js'
+import { wordListRoutes } from './routes/word-lists.js'
+import { wordRoutes } from './routes/words.js'
 
 export function buildApp() {
   const app = Fastify({ logger: true })
 
+  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173'
   app.register(cors, {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: corsOrigin.includes(',') ? corsOrigin.split(',').map(s => s.trim()) : corsOrigin,
   })
 
   app.register(authPlugin)

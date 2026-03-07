@@ -69,6 +69,50 @@ describe('rate limiting', () => {
     )
   })
 
+  it('resets counter based on UTC day boundary, not local timezone', async () => {
+    // 2024-01-15T23:59:00Z - just before midnight UTC
+    const justBeforeMidnightUTC = new Date('2024-01-15T23:59:00.000Z')
+    // 2024-01-16T00:01:00Z - just after midnight UTC (new day)
+    const justAfterMidnightUTC = new Date('2024-01-16T00:01:00.000Z')
+
+    vi.useFakeTimers()
+    vi.setSystemTime(justAfterMidnightUTC)
+
+    mockPrisma.user.findUnique.mockResolvedValue({
+      ...mockUser,
+      dailyAiUsageCount: 20,
+      dailyAiUsageResetAt: justBeforeMidnightUTC,
+    })
+    mockPrisma.user.update.mockResolvedValue({})
+
+    const result = await checkAiRateLimit('user-1')
+    expect(result.allowed).toBe(true)
+    expect(result.remaining).toBe(20)
+
+    vi.useRealTimers()
+  })
+
+  it('does not reset counter within same UTC day', async () => {
+    // Both times are on the same UTC day
+    const earlyUTC = new Date('2024-01-15T01:00:00.000Z')
+    const lateUTC = new Date('2024-01-15T23:59:00.000Z')
+
+    vi.useFakeTimers()
+    vi.setSystemTime(lateUTC)
+
+    mockPrisma.user.findUnique.mockResolvedValue({
+      ...mockUser,
+      dailyAiUsageCount: 20,
+      dailyAiUsageResetAt: earlyUTC,
+    })
+
+    const result = await checkAiRateLimit('user-1')
+    expect(result.allowed).toBe(false)
+    expect(result.remaining).toBe(0)
+
+    vi.useRealTimers()
+  })
+
   it('rejects when user not found', async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null)
 

@@ -1,6 +1,7 @@
 import type { ListRecord } from '../db'
 import { useCallback, useEffect, useState } from 'react'
 import { listStore } from '../db'
+import { analytics } from '../services/analytics'
 
 let nextListId = 0
 function generateListId(): string {
@@ -39,6 +40,7 @@ export function useLists(): ListsResult {
       updatedAt: now,
     }
     await listStore.add(record)
+    analytics.listCreated()
     setLists(prev => [...prev, record])
     return record
   }, [])

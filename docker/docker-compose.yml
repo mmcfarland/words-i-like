@@ -7,9 +7,10 @@ services:
       POSTGRES_USER: words
       POSTGRES_PASSWORD: words
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+      - ./init-umami-db.sql:/docker-entrypoint-initdb.d/init-umami-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U words"]
       interval: 5s
@@ -21,11 +22,23 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.api
     restart: unless-stopped
+    command: >
+      sh -c "pnpm --filter @words/db exec prisma generate &&
+             pnpm --filter @words/db exec prisma db push &&
+             pnpm --filter @words/api dev"
     ports:
       - "3001:3001"
     environment:
       DATABASE_URL: postgresql://words:words@db:5432/words
       PORT: "3001"
+      API_URL: ${API_URL:-http://localhost:3001}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o-mini}
     volumes:
       - ../apps/api/src:/app/apps/api/src
       - ../packages/shared/src:/app/packages/shared/src
@@ -42,12 +55,28 @@ services:
     restart: unless-stopped
     ports:
       - "5173:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
+      VITE_UMAMI_URL: ${VITE_UMAMI_URL:-}
+      VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
     volumes:
       - ../apps/web/src:/app/apps/web/src
       - ../apps/web/index.html:/app/apps/web/index.html
       - ../packages/shared/src:/app/packages/shared/src
     depends_on:
       - api
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      DATABASE_URL: postgresql://words:words@db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:-umami-dev-secret}
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:

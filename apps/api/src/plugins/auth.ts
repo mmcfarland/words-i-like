@@ -16,9 +16,20 @@ declare module '@fastify/jwt' {
   }
 }
 
+function resolveJwtSecret() {
+  const secret = process.env.JWT_SECRET?.trim()
+  if (secret)
+    return secret
+
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST)
+    return 'test-secret'
+
+  throw new Error('JWT_SECRET is required to start the API. Set JWT_SECRET in your environment.')
+}
+
 async function authPlugin(app: FastifyInstance) {
   await app.register(jwt, {
-    secret: process.env.JWT_SECRET || 'dev-secret-change-me',
+    secret: resolveJwtSecret(),
   })
 
   app.decorate('authenticate', async (request: FastifyRequest) => {

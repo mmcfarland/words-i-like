@@ -16,6 +16,17 @@
   flex: 1;
 }
 
+.inlineLink {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: var(--font-weight-medium);
+}
+
+.inlineLink:hover {
+  color: var(--color-accent-hover);
+}
+
 .dismiss {
   flex-shrink: 0;
   width: 24px;

@@ -1,42 +1,41 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { generateExamples } from './ai'
 
+const ORIGINAL_ENV = { ...process.env }
+
 describe('ai service', () => {
-  it('returns stub examples when AZURE_OPENAI_ENDPOINT is not set', async () => {
-    // Ensure env vars are not set
+  afterEach(() => {
+    process.env = { ...ORIGINAL_ENV }
+    vi.restoreAllMocks()
+  })
+
+  it('throws when Azure OpenAI env is missing', async () => {
     delete process.env.AZURE_OPENAI_ENDPOINT
     delete process.env.AZURE_OPENAI_API_KEY
 
-    const result = await generateExamples('serendipity')
-    expect(result.source).toBe('stub')
-    expect(result.examples).toHaveLength(3)
-    expect(result.examples.every(e => typeof e === 'string' && e.length > 0)).toBe(true)
+    await expect(generateExamples('serendipity')).rejects.toThrow('AI examples are not configured')
   })
 
-  it('returns stub examples when only endpoint is set but not key', async () => {
+  it('throws when provider request fails', async () => {
     process.env.AZURE_OPENAI_ENDPOINT = 'https://test.openai.azure.com'
-    delete process.env.AZURE_OPENAI_API_KEY
+    process.env.AZURE_OPENAI_API_KEY = 'test-key'
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 500 } as Response)
 
-    const result = await generateExamples('test')
-    expect(result.source).toBe('stub')
-    expect(result.examples.length).toBeGreaterThan(0)
-
-    delete process.env.AZURE_OPENAI_ENDPOINT
+    await expect(generateExamples('test')).rejects.toThrow('AI provider request failed (500)')
   })
 
-  it('falls back to stub on fetch error', async () => {
+  it('throws when provider response contains no examples', async () => {
     process.env.AZURE_OPENAI_ENDPOINT = 'https://test.openai.azure.com'
     process.env.AZURE_OPENAI_API_KEY = 'test-key'
 
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network error'))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: '' } }],
+      }),
+    } as Response)
 
-    const result = await generateExamples('test')
-    expect(result.source).toBe('stub')
-    expect(result.examples.length).toBeGreaterThan(0)
-
-    fetchSpy.mockRestore()
-    delete process.env.AZURE_OPENAI_ENDPOINT
-    delete process.env.AZURE_OPENAI_API_KEY
+    await expect(generateExamples('test')).rejects.toThrow('AI provider returned no examples')
   })
 
   it('parses Azure OpenAI response correctly', async () => {
@@ -54,15 +53,11 @@ describe('ai service', () => {
       }),
     }
 
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as Response)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as Response)
 
     const result = await generateExamples('serendipity')
     expect(result.source).toBe('azure')
     expect(result.examples).toHaveLength(3)
     expect(result.examples[0]).toContain('serendipity')
-
-    fetchSpy.mockRestore()
-    delete process.env.AZURE_OPENAI_ENDPOINT
-    delete process.env.AZURE_OPENAI_API_KEY
   })
 })

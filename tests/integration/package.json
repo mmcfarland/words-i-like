@@ -1,0 +1,16 @@
+{
+  "name": "@words/integration",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@words/shared": "workspace:^",
+    "@words/db": "workspace:^",
+    "fastify": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}

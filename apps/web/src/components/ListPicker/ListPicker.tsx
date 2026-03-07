@@ -46,8 +46,9 @@ export function ListPicker({
     else {
       await onAssign(wordId, listId)
       setActiveListIds(prev => new Set(prev).add(listId))
+      onClose()
     }
-  }, [wordId, activeListIds, onAssign, onRemove])
+  }, [wordId, activeListIds, onAssign, onRemove, onClose])
 
   const handleCreateList = useCallback(async (e: FormEvent) => {
     e.preventDefault()
@@ -57,7 +58,8 @@ export function ListPicker({
     await onAssign(wordId, list.id)
     setActiveListIds(prev => new Set(prev).add(list.id))
     setNewListName('')
-  }, [newListName, wordId, onCreateList, onAssign])
+    onClose()
+  }, [newListName, wordId, onCreateList, onAssign, onClose])
 
   return (
     <AnimatePresence>
@@ -71,53 +73,55 @@ export function ListPicker({
             onClick={onClose}
             data-testid="list-picker-overlay"
           />
-          <motion.div
-            className={styles.sheet}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            data-testid="list-picker-sheet"
-          >
-            <div className={styles.handle} />
-            <h3 className={styles.title}>Add to list</h3>
+          <div className={styles.container}>
+            <motion.div
+              className={styles.sheet}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              data-testid="list-picker-sheet"
+            >
+              <div className={styles.handle} />
+              <h3 className={styles.title}>Add to list</h3>
 
-            {lists.map(list => (
-              <button
-                key={list.id}
-                className={activeListIds.has(list.id) ? styles.listItemActive : styles.listItem}
-                onClick={() => handleToggleList(list.id)}
-                type="button"
-              >
-                <span className={activeListIds.has(list.id) ? styles.checkboxChecked : styles.checkbox}>
-                  {activeListIds.has(list.id) && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12l5 5L20 7" />
-                    </svg>
-                  )}
-                </span>
-                {list.name}
-              </button>
-            ))}
+              {lists.map(list => (
+                <button
+                  key={list.id}
+                  className={activeListIds.has(list.id) ? styles.listItemActive : styles.listItem}
+                  onClick={() => handleToggleList(list.id)}
+                  type="button"
+                >
+                  <span className={activeListIds.has(list.id) ? styles.checkboxChecked : styles.checkbox}>
+                    {activeListIds.has(list.id) && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12l5 5L20 7" />
+                      </svg>
+                    )}
+                  </span>
+                  {list.name}
+                </button>
+              ))}
 
-            <form className={styles.createForm} onSubmit={handleCreateList}>
-              <input
-                className={styles.createInput}
-                type="text"
-                value={newListName}
-                onChange={e => setNewListName(e.target.value)}
-                placeholder="New list name..."
-                aria-label="New list name"
-              />
-              <button
-                className={styles.createButton}
-                type="submit"
-                disabled={!newListName.trim()}
-              >
-                Create
-              </button>
-            </form>
-          </motion.div>
+              <form className={styles.createForm} onSubmit={handleCreateList}>
+                <input
+                  className={styles.createInput}
+                  type="text"
+                  value={newListName}
+                  onChange={e => setNewListName(e.target.value)}
+                  placeholder="New list name..."
+                  aria-label="New list name"
+                />
+                <button
+                  className={styles.createButton}
+                  type="submit"
+                  disabled={!newListName.trim()}
+                >
+                  Create
+                </button>
+              </form>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

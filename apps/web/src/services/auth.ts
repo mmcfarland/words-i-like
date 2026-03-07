@@ -19,6 +19,10 @@ export const authService = {
     localStorage.setItem(USER_KEY, JSON.stringify(user))
   },
 
+  setToken(token: string): void {
+    localStorage.setItem(TOKEN_KEY, token)
+  },
+
   clearAuth(): void {
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(USER_KEY)
@@ -34,7 +38,7 @@ export const authService = {
   },
 
   getLoginUrl(): string {
-    return `${API_URL}/auth/google`
+    return `${API_URL}/auth/google?strict=1&origin=${encodeURIComponent(window.location.origin)}`
   },
 
   async fetchMe(): Promise<UserProfile | null> {

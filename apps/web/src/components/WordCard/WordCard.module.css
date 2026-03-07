@@ -1,10 +1,12 @@
 .card {
+  position: relative;
   padding: var(--space-5) var(--space-4);
   margin-bottom: var(--space-2);
   border-radius: var(--radius-md);
   background-color: rgba(255, 255, 255, 0.6);
   box-shadow: 0 1px 4px rgba(139, 126, 200, 0.04);
   cursor: pointer;
+  user-select: text;
   transition:
     box-shadow var(--transition-fast),
     background-color var(--transition-fast);
@@ -18,11 +20,65 @@
   box-shadow: 0 2px 8px rgba(139, 126, 200, 0.08);
 }
 
+.deleteButton {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .deleteButton {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity var(--transition-fast),
+      color var(--transition-fast),
+      background-color var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .card:hover .deleteButton,
+  .card:focus-within .deleteButton {
+    opacity: 0.85;
+    pointer-events: auto;
+  }
+
+  .deleteButton:hover {
+    opacity: 1;
+    color: #a35f7f;
+    background-color: rgba(200, 126, 126, 0.14);
+  }
+}
+
 .header {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
   flex-wrap: wrap;
+}
+
+.listTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.listTag {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background-color: rgba(243, 240, 250, 0.62);
+  border: 1px solid rgba(139, 126, 200, 0.1);
+  border-radius: var(--radius-full);
+  padding: 0.1rem 0.5rem;
 }
 
 .word {
@@ -58,6 +114,33 @@
 .audioButton:hover {
   color: var(--color-accent-hover);
   background-color: var(--color-accent-soft);
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  opacity: 0.55;
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.addButton:hover {
+  opacity: 1;
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+}
+
+.addButtonDone {
+  opacity: 1;
+  color: #4caf50;
 }
 
 .excerpt {
@@ -218,7 +301,39 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-accent);
+}
+
+.examplesHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   margin-bottom: var(--space-2);
+}
+
+.examplesRefreshButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  opacity: 0.75;
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.examplesRefreshButton:hover:not(:disabled) {
+  opacity: 1;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg);
+}
+
+.examplesRefreshButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .examplesList {
@@ -236,10 +351,13 @@
 }
 
 .exampleItem::before {
-  content: '–';
+  content: '•';
   position: absolute;
   left: 0;
-  color: var(--color-text-muted);
+  color: var(--color-accent);
+  opacity: 0.5;
+  font-size: var(--text-xs);
+  line-height: var(--line-height-relaxed);
 }
 
 .exampleItem:last-child {
@@ -270,8 +388,106 @@
   cursor: not-allowed;
 }
 
+.generateButtonWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.authTooltip {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  width: max-content;
+  max-width: min(280px, calc(100vw - var(--space-8)));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-accent-soft);
+  background: linear-gradient(155deg, var(--color-bg-elevated), var(--color-bg-subtle));
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  z-index: 5;
+}
+
+.authTooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid var(--color-accent-soft);
+  border-top: 1px solid var(--color-accent-soft);
+  background: var(--color-bg-subtle);
+  transform: rotate(45deg);
+}
+
 .examplesError {
   margin-top: var(--space-2);
   font-size: var(--text-sm);
   color: var(--color-error, #dc3545);
+}
+
+.attributionWrap {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+
+.attributionToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--color-text-placeholder);
+  opacity: 0.6;
+  cursor: pointer;
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.attributionToggle:hover {
+  opacity: 1;
+  color: var(--color-text-muted);
+}
+
+.attributionPopover {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  right: 0;
+  width: max-content;
+  max-width: min(260px, calc(100vw - var(--space-8)));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(139, 126, 200, 0.12);
+  background: linear-gradient(155deg, var(--color-bg-elevated, #fff), var(--color-bg-subtle, #faf9fe));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 5;
+}
+
+.attributionPopover p {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.attributionPopover p + p {
+  margin-top: var(--space-1);
+}
+
+.attributionPopover a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.attributionPopover a:hover {
+  text-decoration: underline;
 }

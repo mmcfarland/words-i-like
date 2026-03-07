@@ -19,13 +19,40 @@ export function useScrollState() {
 interface AppShellProps {
   children: ReactNode
   user?: UserProfile | null
+  activeListName?: string | null
+  activeListWordCount?: number
+  onShareClick?: () => void
+  onDeleteActiveList?: () => void
+  isSharing?: boolean
+  isDeletingActiveList?: boolean
+  shareCopied?: boolean
+  shareFailed?: boolean
   onSignIn?: () => void
   onSignOut?: () => void
   onSearchClick?: () => void
   onListClick?: () => void
+  avatarPopoverMessage?: string | null
+  onDismissAvatarPopover?: () => void
 }
 
-export function AppShell({ children, user, onSignIn, onSignOut, onSearchClick, onListClick }: AppShellProps) {
+export function AppShell({
+  children,
+  user,
+  activeListName,
+  activeListWordCount,
+  onShareClick,
+  onDeleteActiveList,
+  isSharing,
+  isDeletingActiveList,
+  shareCopied,
+  shareFailed,
+  onSignIn,
+  onSignOut,
+  onSearchClick,
+  onListClick,
+  avatarPopoverMessage,
+  onDismissAvatarPopover,
+}: AppShellProps) {
   const [scrollState, setScrollState] = useState<ScrollState>({ isScrolled: false, scrollY: 0 })
   const mainRef = useRef<HTMLElement>(null)
 
@@ -45,7 +72,23 @@ export function AppShell({ children, user, onSignIn, onSignOut, onSearchClick, o
   return (
     <ScrollContext value={scrollState}>
       <div className={styles.shell}>
-        <TopBar user={user ?? null} onSignIn={onSignIn ?? (() => {})} onSignOut={onSignOut ?? (() => {})} onSearchClick={onSearchClick} onListClick={onListClick} />
+        <TopBar
+          user={user ?? null}
+          activeListName={activeListName ?? null}
+          activeListWordCount={activeListWordCount}
+          onShareClick={onShareClick}
+          onDeleteActiveList={onDeleteActiveList}
+          isSharing={isSharing}
+          isDeletingActiveList={isDeletingActiveList}
+          shareCopied={shareCopied}
+          shareFailed={shareFailed}
+          onSignIn={onSignIn ?? (() => {})}
+          onSignOut={onSignOut ?? (() => {})}
+          onSearchClick={onSearchClick}
+          onListClick={onListClick}
+          avatarPopoverMessage={avatarPopoverMessage}
+          onDismissAvatarPopover={onDismissAvatarPopover}
+        />
         <main ref={mainRef} className={styles.main} onScroll={handleScroll}>
           {children}
         </main>

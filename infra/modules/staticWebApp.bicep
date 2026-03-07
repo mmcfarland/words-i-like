@@ -1,6 +1,5 @@
 param environment string
 param location string
-param apiUrl string
 
 resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
   name: 'words-${environment}-web'

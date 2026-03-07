@@ -62,6 +62,7 @@ describe('useWordCollection', () => {
     })
 
     expect(result.current.words).toHaveLength(1)
+    expect(result.current.localChangeVersion).toBeGreaterThan(0)
 
     // Verify persisted
     const stored = await db.words.toArray()

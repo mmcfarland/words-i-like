@@ -184,6 +184,21 @@ importers:
         specifier: ^1.50.0
         version: 1.58.2
 
+  tests/integration:
+    devDependencies:
+      '@words/db':
+        specifier: workspace:^
+        version: link:../../packages/db
+      '@words/shared':
+        specifier: workspace:^
+        version: link:../../packages/shared
+      fastify:
+        specifier: ^5.0.0
+        version: 5.7.4
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@25.3.2)(jiti@2.6.1)(jsdom@26.1.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+
   tests/visual:
     devDependencies:
       '@playwright/test':

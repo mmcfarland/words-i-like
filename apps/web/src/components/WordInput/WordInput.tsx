@@ -49,13 +49,14 @@ export function WordInput({ onSubmit }: WordInputProps) {
         <input
           className={styles.input}
           type="text"
+          autoFocus
           value={value}
           onChange={(e) => {
             setValue(e.target.value)
             if (error)
               setError(undefined)
           }}
-          placeholder="what word do you like?"
+          placeholder="Words I like"
           aria-label="Enter a word"
           autoComplete="off"
           spellCheck={false}

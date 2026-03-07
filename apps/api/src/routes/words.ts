@@ -1,12 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import { CreateWordSchema, UpdateWordSchema } from '@words/shared'
-import { wordService } from '../services/word'
-
-// Temporary: use a demo user until auth is implemented in Phase 6
-const DEMO_USER_ID = 'demo-user-id'
+import { wordService } from '../services/word.js'
 
 export async function wordRoutes(app: FastifyInstance) {
-  app.post('/words', async (request, reply) => {
+  app.post('/words', { preHandler: [app.authenticate] }, async (request, reply) => {
     const parsed = CreateWordSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({
@@ -17,7 +14,8 @@ export async function wordRoutes(app: FastifyInstance) {
     }
 
     try {
-      const word = await wordService.create(DEMO_USER_ID, parsed.data)
+      const { userId } = request.user
+      const word = await wordService.create(userId, parsed.data)
       return reply.status(201).send(word)
     }
     catch (error: unknown) {
@@ -32,13 +30,15 @@ export async function wordRoutes(app: FastifyInstance) {
     }
   })
 
-  app.get('/words', async () => {
-    return wordService.getAll(DEMO_USER_ID)
+  app.get('/words', { preHandler: [app.authenticate] }, async (request) => {
+    const { userId } = request.user
+    return wordService.getAll(userId)
   })
 
-  app.get('/words/:id', async (request, reply) => {
+  app.get('/words/:id', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string }
-    const word = await wordService.getById(id, DEMO_USER_ID)
+    const { userId } = request.user
+    const word = await wordService.getById(id, userId)
     if (!word) {
       return reply.status(404).send({
         error: 'Not Found',
@@ -49,7 +49,7 @@ export async function wordRoutes(app: FastifyInstance) {
     return word
   })
 
-  app.put('/words/:id', async (request, reply) => {
+  app.put('/words/:id', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const parsed = UpdateWordSchema.safeParse(request.body)
     if (!parsed.success) {
@@ -60,7 +60,8 @@ export async function wordRoutes(app: FastifyInstance) {
       })
     }
 
-    const result = await wordService.update(id, DEMO_USER_ID, parsed.data)
+    const { userId } = request.user
+    const result = await wordService.update(id, userId, parsed.data)
     if (result.count === 0) {
       return reply.status(404).send({
         error: 'Not Found',
@@ -69,12 +70,13 @@ export async function wordRoutes(app: FastifyInstance) {
       })
     }
 
-    return wordService.getById(id, DEMO_USER_ID)
+    return wordService.getById(id, userId)
   })
 
-  app.delete('/words/:id', async (request, reply) => {
+  app.delete('/words/:id', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string }
-    const result = await wordService.delete(id, DEMO_USER_ID)
+    const { userId } = request.user
+    const result = await wordService.delete(id, userId)
     if (result.count === 0) {
       return reply.status(404).send({
         error: 'Not Found',

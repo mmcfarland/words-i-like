@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { analytics } from '../services/analytics'
 
 export interface SearchResult {
   searchQuery: string
@@ -29,6 +30,7 @@ export function useSearch(): SearchResult {
 
   const activateSearch = useCallback(() => {
     setIsSearchActive(true)
+    analytics.searchUsed()
   }, [])
 
   const deactivateSearch = useCallback(() => {

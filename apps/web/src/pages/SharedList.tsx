@@ -1,4 +1,8 @@
+import type { DefinitionStatus, DictionaryMeaning, Word } from '@words/shared'
 import { useCallback, useEffect, useState } from 'react'
+import { analytics } from '../services/analytics'
+import { wordStore } from '../db'
+import { WordFeed } from '../components/WordFeed'
 import styles from './SharedList.module.css'
 
 interface SharedWord {
@@ -17,11 +21,37 @@ interface SharedListData {
   words: SharedWord[]
 }
 
-function getExcerpt(word: SharedWord): string {
-  const firstDef = word.definitions?.[0]?.definitions?.[0]?.definition
-  if (!firstDef)
-    return ''
-  return firstDef.length > 120 ? `${firstDef.slice(0, 117)}...` : firstDef
+function normalizeDefinitionStatus(status: string): DefinitionStatus {
+  switch (status) {
+    case 'found':
+    case 'not_found':
+    case 'pending':
+      return status
+    default:
+      return 'found'
+  }
+}
+
+function toFeedWord(word: SharedWord): Word {
+  return {
+    id: word.id,
+    text: word.text,
+    definitions: word.definitions.map(meaning => ({
+      partOfSpeech: meaning.partOfSpeech,
+      definitions: meaning.definitions.map(definition => ({
+        definition: definition.definition,
+        example: definition.example,
+        synonyms: [],
+        antonyms: [],
+      })),
+      synonyms: [],
+      antonyms: [],
+    })),
+    pronunciation: word.pronunciation ?? undefined,
+    definitionStatus: normalizeDefinitionStatus(word.definitionStatus),
+    createdAt: 0,
+    updatedAt: 0,
+  }
 }
 
 interface SharedListProps {
@@ -33,6 +63,26 @@ export function SharedList({ token }: SharedListProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const handleAddWord = useCallback(async (text: string, definitions: DictionaryMeaning[], pronunciation?: string, pronunciationAudio?: string) => {
+    try {
+      const now = Date.now()
+      await wordStore.add({
+        id: crypto.randomUUID(),
+        text,
+        definitions,
+        pronunciation,
+        pronunciationAudio,
+        definitionStatus: 'found',
+        createdAt: now,
+        updatedAt: now,
+      })
+      analytics.wordAdopted()
+    }
+    catch {
+      // Word may already exist locally
+    }
+  }, [])
+
   const fetchList = useCallback(async () => {
     try {
       const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001'
@@ -43,6 +93,7 @@ export function SharedList({ token }: SharedListProps) {
       }
       const result = await response.json()
       setData(result)
+      analytics.sharedListViewed()
     }
     catch {
       setError('Unable to load shared list.')
@@ -59,7 +110,10 @@ export function SharedList({ token }: SharedListProps) {
   if (loading) {
     return (
       <div className={styles.page}>
-        <div className={styles.loading}>Loading…</div>
+        <div className={styles.container}>
+          <a className={styles.homeLink} href="/">Words I Like</a>
+          <div className={styles.loading}>Loading…</div>
+        </div>
       </div>
     )
   }
@@ -67,9 +121,12 @@ export function SharedList({ token }: SharedListProps) {
   if (error || !data) {
     return (
       <div className={styles.page}>
-        <div className={styles.error}>
-          <h1 className={styles.errorTitle}>Not Found</h1>
-          <p className={styles.errorMessage}>{error || 'This shared list does not exist.'}</p>
+        <div className={styles.container}>
+          <a className={styles.homeLink} href="/">Words I Like</a>
+          <div className={styles.error}>
+            <h1 className={styles.errorTitle}>Not Found</h1>
+            <p className={styles.errorMessage}>{error || 'This shared list does not exist.'}</p>
+          </div>
         </div>
       </div>
     )
@@ -78,6 +135,7 @@ export function SharedList({ token }: SharedListProps) {
   return (
     <div className={styles.page} data-testid="shared-list-page">
       <div className={styles.container}>
+        <a className={styles.homeLink} href="/">Words I Like</a>
         <div className={styles.header}>
           <h1 className={styles.listName}>{data.name}</h1>
           <p className={styles.subtitle}>a shared collection of words</p>
@@ -86,23 +144,15 @@ export function SharedList({ token }: SharedListProps) {
         {data.words.length === 0 && (
           <p className={styles.empty}>This list has no words yet.</p>
         )}
-
-        {data.words.map(word => (
-          <div key={word.id} className={styles.wordCard}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.word}>{word.text}</h2>
-              {word.pronunciation && (
-                <span className={styles.pronunciation}>{word.pronunciation}</span>
-              )}
-            </div>
-            {word.definitionStatus === 'found' && getExcerpt(word) && (
-              <p className={styles.excerpt}>{getExcerpt(word)}</p>
-            )}
-            {word.definitionStatus === 'not_found' && (
-              <p className={styles.noDefinition}>No definition found</p>
-            )}
-          </div>
-        ))}
+        {data.words.length > 0 && (
+          <WordFeed
+            words={data.words.map(toFeedWord)}
+            expandedIds={new Set()}
+            onToggle={() => {}}
+            mode="shared"
+            onAddWord={handleAddWord}
+          />
+        )}
       </div>
     </div>
   )

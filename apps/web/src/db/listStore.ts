@@ -38,4 +38,11 @@ export const listStore = {
     const entries = await db.wordLists.where('listId').equals(listId).toArray()
     return entries.map(e => e.wordId)
   },
+
+  async clearAll(): Promise<void> {
+    await db.transaction('rw', [db.lists, db.wordLists], async () => {
+      await db.wordLists.clear()
+      await db.lists.clear()
+    })
+  },
 }

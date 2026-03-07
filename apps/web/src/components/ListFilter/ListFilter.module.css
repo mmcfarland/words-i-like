@@ -6,12 +6,34 @@
   padding: var(--space-2) var(--space-4);
   background-color: var(--color-bg);
   overflow: hidden;
+  flex-wrap: wrap;
+}
+
+.prefix {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
 }
 
 .label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(139, 126, 200, 0.18);
+  box-shadow: 0 3px 10px rgba(139, 126, 200, 0.08);
   font-size: var(--text-sm);
   color: var(--color-accent);
   font-weight: var(--font-weight-medium);
+}
+
+.countPill {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  background-color: rgba(139, 126, 200, 0.12);
+  border-radius: var(--radius-full);
+  padding: 0.1rem 0.45rem;
 }
 
 .clearButton {
@@ -46,4 +68,23 @@
 
 .shareButton:disabled {
   opacity: 0.5;
+}
+
+.deleteButton {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.deleteButton:hover {
+  color: #a35f7f;
+  background-color: rgba(200, 126, 126, 0.14);
+}
+
+.deleteButton:disabled {
+  opacity: 0.6;
 }

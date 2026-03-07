@@ -73,7 +73,7 @@ export const listService = {
       return null
 
     return prisma.wordList.findMany({
-      where: { wordId },
+      where: { wordId, list: { userId } },
       include: { list: true },
     })
   },

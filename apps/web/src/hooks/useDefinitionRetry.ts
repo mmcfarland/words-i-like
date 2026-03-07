@@ -29,6 +29,8 @@ export function useDefinitionRetry(onUpdate: () => void) {
             pronunciation: result.pronunciation,
             pronunciationAudio: result.pronunciationAudio,
             definitionStatus: result.status,
+            sourceUrl: result.sourceUrl,
+            ...(result.examples?.length ? { examples: result.examples } : {}),
           })
           onUpdate()
         }
