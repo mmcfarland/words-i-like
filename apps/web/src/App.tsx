@@ -1,5 +1,4 @@
 import type { ListRecord } from './db'
-import type { Word } from '@words/shared'
 import { useCallback, useEffect, useState } from 'react'
 import { AppShell } from './components/AppShell'
 import { IntroCard } from './components/IntroCard'
@@ -115,7 +114,7 @@ export function App({ initialListId = null }: AppProps) {
   const [shareCopied, setShareCopied] = useState(false)
   const [shareFailed, setShareFailed] = useState(false)
   const [deletingActiveList, setDeletingActiveList] = useState(false)
-  const [deleteToast, setDeleteToast] = useState<{ word: Word, timeoutId: number } | null>(null)
+  const [toastState, setToastState] = useState<{ message: string, action?: { label: string, onClick: () => void }, timeoutId: number } | null>(null)
   const [hasAppliedListRoute, setHasAppliedListRoute] = useState(false)
   const showTenWordAuthTooltip = !isAuthenticated && !isSearchActive && words.length >= 10
   const selectedList = lists.find(l => l.id === filterByListId) ?? null
@@ -124,6 +123,19 @@ export function App({ initialListId = null }: AppProps) {
 
   useDefinitionRetry(refreshWords)
   useSync(isAuthenticated, refreshWords, localChangeVersion)
+
+  const showToast = useCallback((message: string, action?: { label: string, onClick: () => void }, duration = 5000) => {
+    if (toastState)
+      clearTimeout(toastState.timeoutId)
+    const timeoutId = window.setTimeout(() => setToastState(null), duration)
+    setToastState({ message, action, timeoutId })
+  }, [toastState])
+
+  const dismissToast = useCallback(() => {
+    if (toastState)
+      clearTimeout(toastState.timeoutId)
+    setToastState(null)
+  }, [toastState])
 
   // Keep word collection search in sync with debounced query
   const handleSearchQueryChange = useCallback((query: string) => {
@@ -148,6 +160,14 @@ export function App({ initialListId = null }: AppProps) {
       // Scroll to top so the new word is immediately visible
       document.querySelector('main')?.scrollTo?.({ top: 0, behavior: 'instant' as ScrollBehavior })
     }
+    else {
+      // Scroll to the existing word and show toast
+      showToast(`"${trimmedText.toLowerCase()}" is already in your collection`)
+      if (result.existingId) {
+        const el = document.querySelector(`[data-word-id="${result.existingId}"]`)
+        el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+      }
+    }
 
     if (selectedList) {
       const targetWord = await wordStore.findByText(trimmedText)
@@ -165,7 +185,7 @@ export function App({ initialListId = null }: AppProps) {
       localStorage.setItem(AVATAR_POPOVER_SEEN_KEY, 'true')
       setShowAvatarPopover(true)
     }
-  }, [addWord, assignWordToList, isAuthenticated, refreshWords, selectedList, words.length])
+  }, [addWord, assignWordToList, isAuthenticated, refreshWords, selectedList, words.length, showToast])
 
   const handleSearchDismiss = useCallback(() => {
     deactivateSearch()
@@ -220,25 +240,23 @@ export function App({ initialListId = null }: AppProps) {
     if (!wordToDelete)
       return
 
-    if (deleteToast) {
-      clearTimeout(deleteToast.timeoutId)
-      setDeleteToast(null)
-    }
-
     await deleteWord(wordId)
 
-    const timeoutId = window.setTimeout(() => setDeleteToast(null), 5000)
-    setDeleteToast({ word: wordToDelete, timeoutId })
-  }, [words, deleteWord, deleteToast])
-
-  const handleUndoDelete = useCallback(async () => {
-    if (!deleteToast)
-      return
-    clearTimeout(deleteToast.timeoutId)
-    await wordStore.add(deleteToast.word)
-    refreshWords()
-    setDeleteToast(null)
-  }, [deleteToast, refreshWords])
+    const savedWord = wordToDelete
+    showToast(
+      `"${savedWord.text}" deleted`,
+      {
+        label: 'Undo',
+        onClick: () => {
+          void (async () => {
+            await wordStore.add(savedWord)
+            refreshWords()
+            dismissToast()
+          })()
+        },
+      },
+    )
+  }, [words, deleteWord, showToast, dismissToast, refreshWords])
 
   useEffect(() => {
     if (hasAppliedListRoute)
@@ -444,14 +462,11 @@ export function App({ initialListId = null }: AppProps) {
         />
       )}
 
-      {deleteToast && (
+      {toastState && (
         <Toast
-          message={`"${deleteToast.word.text}" deleted`}
-          action={{ label: 'Undo', onClick: () => { void handleUndoDelete() } }}
-          onDismiss={() => {
-            clearTimeout(deleteToast.timeoutId)
-            setDeleteToast(null)
-          }}
+          message={toastState.message}
+          action={toastState.action}
+          onDismiss={dismissToast}
         />
       )}
     </AppShell>

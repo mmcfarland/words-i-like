@@ -127,7 +127,7 @@ export function WordCard({ text, meanings, pronunciation, pronunciationAudio, de
         </button>
       )}
       <div className={styles.header}>
-        <h2 className={styles.word}>{text}</h2>
+        <h2 className={styles.word}>{text.toLowerCase()}</h2>
         {onAddWord && (
           <button
             type="button"

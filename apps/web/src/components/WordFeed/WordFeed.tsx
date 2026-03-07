@@ -95,6 +95,7 @@ export function WordFeed({ words, wordListNames, showSwipeHint = false, expanded
         {words.map((word, index) => (
           <motion.div
             key={word.id}
+            data-word-id={word.id}
             layout
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

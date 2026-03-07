@@ -33,7 +33,7 @@ function wordMatchesSearch(word: Word, query: string): boolean {
 export interface WordCollectionResult {
   words: Word[]
   filteredWords: Word[]
-  addWord: (text: string) => Promise<{ isDuplicate: boolean }>
+  addWord: (text: string) => Promise<{ isDuplicate: boolean, existingId?: string }>
   deleteWord: (id: string) => Promise<void>
   correctWord: (id: string, correctedText: string) => Promise<void>
   toggleExpanded: (id: string) => void
@@ -92,12 +92,12 @@ export function useWordCollection(): WordCollectionResult {
     setLocalChangeVersion(prev => prev + 1)
   }, [])
 
-  const addWord = useCallback(async (text: string): Promise<{ isDuplicate: boolean }> => {
+  const addWord = useCallback(async (text: string): Promise<{ isDuplicate: boolean, existingId?: string }> => {
     const existing = await wordStore.findByText(text.trim())
 
     if (existing) {
       setExpandedIds(prev => new Set(prev).add(existing.id))
-      return { isDuplicate: true }
+      return { isDuplicate: true, existingId: existing.id }
     }
 
     const now = Date.now()
