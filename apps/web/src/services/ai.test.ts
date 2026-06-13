@@ -35,7 +35,7 @@ describe('aiService', () => {
       expect.objectContaining({
         method: 'POST',
         headers: {
-          Authorization: 'Bearer token',
+          'Authorization': 'Bearer token',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ text: 'ephemeral' }),

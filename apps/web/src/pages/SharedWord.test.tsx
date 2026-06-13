@@ -4,7 +4,7 @@ import { SharedWord } from './SharedWord'
 
 const fetchMock = vi.hoisted(() => vi.fn())
 
-describe('SharedWord', () => {
+describe('sharedWord', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)

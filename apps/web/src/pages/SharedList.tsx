@@ -1,8 +1,8 @@
 import type { DefinitionStatus, DictionaryMeaning, Word } from '@words/shared'
 import { useCallback, useEffect, useState } from 'react'
-import { analytics } from '../services/analytics'
-import { wordStore } from '../db'
 import { WordFeed } from '../components/WordFeed'
+import { wordStore } from '../db'
+import { analytics } from '../services/analytics'
 import styles from './SharedList.module.css'
 
 interface SharedWord {

@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
+import { Buffer } from 'node:buffer'
 import process from 'node:process'
 import { prisma } from '@words/db'
 

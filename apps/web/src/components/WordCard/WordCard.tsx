@@ -153,7 +153,8 @@ export function WordCard({ text, meanings, pronunciation, pronunciationAudio, de
             aria-label={addedFeedback ? 'Added to collection' : 'Add to my collection'}
             onClick={(e) => {
               e.stopPropagation()
-              if (addedFeedback) return
+              if (addedFeedback)
+                return
               onAddWord(text, meanings, pronunciation, pronunciationAudio)
               setAddedFeedback(true)
               window.setTimeout(() => setAddedFeedback(false), 1800)
@@ -161,7 +162,12 @@ export function WordCard({ text, meanings, pronunciation, pronunciationAudio, de
           >
             {addedFeedback
               ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-              : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>}
+              : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                )}
           </button>
         )}
       </div>

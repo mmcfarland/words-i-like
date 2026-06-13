@@ -14,7 +14,9 @@ export default defineConfig({
   },
   expect: {
     toHaveScreenshot: {
-      maxDiffPixelRatio: 0.001,
+      // Tolerate minor cross-environment font anti-aliasing differences between
+      // local and CI runners while still catching real layout/visual regressions.
+      maxDiffPixelRatio: 0.01,
     },
   },
   projects: [

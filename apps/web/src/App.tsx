@@ -16,9 +16,9 @@ import { useDefinitionRetry } from './hooks/useDefinitionRetry'
 import { useLists } from './hooks/useLists'
 import { useSearch } from './hooks/useSearch'
 import { useSync } from './hooks/useSync'
-import { authService } from './services/auth'
-import { analytics } from './services/analytics'
 import { useWordCollection } from './hooks/useWordCollection'
+import { analytics } from './services/analytics'
+import { authService } from './services/auth'
 
 const AVATAR_POPOVER_SEEN_KEY = 'words-avatar-popover-seen'
 const SWIPE_HINT_SEEN_KEY = 'words-swipe-hint-seen'
@@ -221,6 +221,7 @@ export function App({ initialListId = null }: AppProps) {
   }, [setFilterByListId])
 
   const handleDeleteList = useCallback(async (listId: string, listName: string) => {
+    // eslint-disable-next-line no-alert -- intentional confirmation before destructive list delete
     const confirmed = window.confirm(`Delete "${listName}"? This only removes the list and keeps your words.`)
     if (!confirmed)
       return

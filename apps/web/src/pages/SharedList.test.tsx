@@ -4,7 +4,7 @@ import { SharedList } from './SharedList'
 
 const fetchMock = vi.hoisted(() => vi.fn())
 
-describe('SharedList', () => {
+describe('sharedList', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
