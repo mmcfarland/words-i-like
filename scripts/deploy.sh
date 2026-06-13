@@ -46,8 +46,8 @@ cleanup_temp_firewall_rule() {
   fi
   az postgres flexible-server firewall-rule delete \
     --resource-group "$RG" \
-    --name "$PG_SERVER" \
-    --rule-name "$TEMP_FIREWALL_RULE" \
+    --server-name "$PG_SERVER" \
+    --name "$TEMP_FIREWALL_RULE" \
     --yes \
     --output none 2>/dev/null || warn "Could not remove temporary firewall rule ${TEMP_FIREWALL_RULE}"
   TEMP_FIREWALL_RULE=""
@@ -283,8 +283,8 @@ if az postgres flexible-server show --resource-group "$RG" --name "$PG_SERVER" -
     TEMP_FIREWALL_RULE="deployer-$(date +%s)"
     if az postgres flexible-server firewall-rule create \
       --resource-group "$RG" \
-      --name "$PG_SERVER" \
-      --rule-name "$TEMP_FIREWALL_RULE" \
+      --server-name "$PG_SERVER" \
+      --name "$TEMP_FIREWALL_RULE" \
       --start-ip-address "$CLIENT_PUBLIC_IP" \
       --end-ip-address "$CLIENT_PUBLIC_IP" \
       --output none >/dev/null 2>&1; then
