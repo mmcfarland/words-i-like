@@ -43,7 +43,7 @@ jobs:
           done
           docker compose -f docker/docker-compose.yml logs api db
           exit 1
-      - run: npx playwright install chromium --with-deps
+      - run: pnpm --filter @words/e2e exec playwright install chromium --with-deps
       - run: pnpm test:e2e
       - run: pnpm test:visual
       - if: always()
