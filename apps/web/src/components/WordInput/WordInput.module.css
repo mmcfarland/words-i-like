@@ -29,6 +29,11 @@
 
 .input {
   flex: 1;
+  /* Allow the flex item to shrink below its intrinsic width. Without this, the
+     large prominent-state font makes the input's auto min-width overflow the
+     row, pushing the submit button off-screen and horizontally shifting the
+     whole feed on first paint until a reflow corrects it. */
+  min-width: 0;
   font-family: var(--font-serif);
   color: var(--color-text-primary);
   background: transparent;

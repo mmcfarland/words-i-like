@@ -103,6 +103,35 @@ describe('useAuth OAuth callback handling', () => {
     expect(result.current.user).toBeNull()
   })
 
+  it('keeps the stored session when the server is unreachable on startup', async () => {
+    mockAuthService.getUser.mockReturnValue(PROFILE)
+    mockAuthService.fetchMe.mockRejectedValue(new Error('offline'))
+
+    const { result } = renderHook(() => useAuth())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.user).toEqual(PROFILE)
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(mockAuthService.clearAuth).not.toHaveBeenCalled()
+  })
+
+  it('signs out when the server rejects the stored token on startup', async () => {
+    mockAuthService.getUser.mockReturnValue(PROFILE)
+    mockAuthService.fetchMe.mockResolvedValue(null)
+
+    const { result } = renderHook(() => useAuth())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.user).toBeNull()
+    expect(mockAuthService.clearAuth).toHaveBeenCalled()
+  })
+
   it('clears local stores and scoped sync state on sign out', async () => {
     mockAuthService.getUser.mockReturnValue(PROFILE)
     mockAuthService.fetchMe.mockResolvedValue(PROFILE)

@@ -57,14 +57,21 @@ export function useAuth(): UseAuthResult {
       return
     }
 
-    // Normal startup — check existing session and refresh stored profile
+    // Normal startup — check existing session and refresh stored profile.
+    // If the server is unreachable (offline / transient error) fetchMe rejects,
+    // and we keep the locally stored session so login feels persistent.
     authService.fetchMe().then((profile) => {
       if (profile) {
         const token = authService.getToken()
         if (token)
           authService.setAuth(token, profile)
+        setUser(profile)
       }
-      setUser(profile)
+      else {
+        // Definitive auth rejection (401/403) — fetchMe already cleared storage.
+        authService.clearAuth()
+        setUser(null)
+      }
       setIsLoading(false)
     }).catch(() => setIsLoading(false))
   }, [])

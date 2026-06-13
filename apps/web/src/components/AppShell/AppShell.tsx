@@ -11,6 +11,14 @@ interface ScrollState {
 
 const ScrollContext = createContext<ScrollState>({ isScrolled: false, scrollY: 0 })
 
+// Hysteresis band: switch to the compact header only after scrolling well past
+// the prominent input, and back to prominent only near the very top. A single
+// threshold here caused a feedback loop — compacting the input shrank the
+// content above the fold, which (via browser scroll anchoring) pushed scrollTop
+// back across the threshold, oscillating and "snapping" the page to the top.
+const COMPACT_ENTER = 72
+const COMPACT_EXIT = 24
+
 // eslint-disable-next-line react-refresh/only-export-components
 export function useScrollState() {
   return use(ScrollContext)
@@ -55,10 +63,20 @@ export function AppShell({
 }: AppShellProps) {
   const [scrollState, setScrollState] = useState<ScrollState>({ isScrolled: false, scrollY: 0 })
   const mainRef = useRef<HTMLElement>(null)
+  const frameRef = useRef<number | null>(null)
 
   const handleScroll = useCallback(() => {
-    const scrollY = mainRef.current?.scrollTop ?? 0
-    setScrollState({ isScrolled: scrollY > 60, scrollY })
+    if (frameRef.current !== null)
+      return
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null
+      const scrollY = mainRef.current?.scrollTop ?? 0
+      setScrollState((prev) => {
+        const isScrolled = prev.isScrolled ? scrollY > COMPACT_EXIT : scrollY > COMPACT_ENTER
+        // Only re-render consumers when the compact/prominent state actually flips.
+        return isScrolled === prev.isScrolled ? prev : { isScrolled, scrollY }
+      })
+    })
   }, [])
 
   useEffect(() => {
@@ -66,7 +84,13 @@ export function AppShell({
     if (!el)
       return
     el.addEventListener('scroll', handleScroll, { passive: true })
-    return () => el.removeEventListener('scroll', handleScroll)
+    return () => {
+      el.removeEventListener('scroll', handleScroll)
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+        frameRef.current = null
+      }
+    }
   }, [handleScroll])
 
   return (
@@ -89,7 +113,7 @@ export function AppShell({
           avatarPopoverMessage={avatarPopoverMessage}
           onDismissAvatarPopover={onDismissAvatarPopover}
         />
-        <main ref={mainRef} className={styles.main} onScroll={handleScroll}>
+        <main ref={mainRef} className={styles.main}>
           {children}
         </main>
       </div>

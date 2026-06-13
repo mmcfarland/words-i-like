@@ -5,7 +5,9 @@ import { prisma } from '@words/db'
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',').map(s => s.trim())
 const FRONTEND_URL = ALLOWED_ORIGINS[0]
 const DEFAULT_API_URL = 'http://localhost:3001'
-const AUTH_TOKEN_EXPIRY = '1h'
+// Long-lived session: this is a local-first PWA with no refresh-token flow, so a
+// short expiry silently logs users out on reload. Keep them signed in for 30 days.
+const AUTH_TOKEN_EXPIRY = '30d'
 
 function resolveFrontendUrl(value?: string) {
   if (!value)

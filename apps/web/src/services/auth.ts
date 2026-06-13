@@ -46,19 +46,18 @@ export const authService = {
     if (!token)
       return null
 
-    try {
-      const response = await fetch(`${API_URL}/auth/me`, {
-        headers: this.getAuthHeaders(),
-      })
-      if (!response.ok) {
-        this.clearAuth()
-        return null
-      }
-      return response.json()
-    }
-    catch {
+    // A network failure throws (propagated to caller so the locally stored
+    // session is kept while offline). Only a real auth rejection clears state.
+    const response = await fetch(`${API_URL}/auth/me`, {
+      headers: this.getAuthHeaders(),
+    })
+    if (response.status === 401 || response.status === 403) {
+      this.clearAuth()
       return null
     }
+    if (!response.ok)
+      throw new Error(`Failed to load profile (${response.status})`)
+    return response.json()
   },
 
   async devLogin(displayName?: string): Promise<{ token: string, user: UserProfile } | null> {

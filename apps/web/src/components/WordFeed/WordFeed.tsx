@@ -25,14 +25,22 @@ function supportsFinePointer() {
     && window.matchMedia('(hover: hover) and (pointer: fine)').matches
 }
 
+// Deleting is destructive, so require a clearly deliberate gesture: either pull
+// the card a long way across, or a fast, decisive flick that still travels well.
+const DELETE_DRAG_DISTANCE = -168
+const DELETE_FLICK_DISTANCE = -112
+const DELETE_FLICK_VELOCITY = -1500
+
 function SwipeableCard({ children, onDelete, showSwipeHint, swipeEnabled }: { children: React.ReactNode, onDelete?: () => void, showSwipeHint?: boolean, swipeEnabled: boolean }) {
   const x = useMotionValue(0)
-  const deleteOpacity = useTransform(x, [-120, -60], [1, 0])
-  const deleteScale = useTransform(x, [-120, -60], [1, 0.8])
+  const deleteOpacity = useTransform(x, [DELETE_DRAG_DISTANCE, -80], [1, 0])
+  const deleteScale = useTransform(x, [DELETE_DRAG_DISTANCE, -80], [1, 0.8])
   const prefersReducedMotion = useReducedMotion()
 
   const handleDragEnd = useCallback((_: unknown, info: { offset: { x: number }, velocity: { x: number } }) => {
-    if (info.offset.x < -100 || info.velocity.x < -500) {
+    const draggedFarEnough = info.offset.x < DELETE_DRAG_DISTANCE
+    const decisiveFlick = info.offset.x < DELETE_FLICK_DISTANCE && info.velocity.x < DELETE_FLICK_VELOCITY
+    if (draggedFarEnough || decisiveFlick) {
       onDelete?.()
     }
   }, [onDelete])
@@ -65,7 +73,7 @@ function SwipeableCard({ children, onDelete, showSwipeHint, swipeEnabled }: { ch
         style={{ x }}
         drag={swipeEnabled ? 'x' : false}
         dragListener={swipeEnabled}
-        dragConstraints={{ left: -140, right: 0 }}
+        dragConstraints={{ left: -210, right: 0 }}
         dragElastic={0.1}
         onDragEnd={handleDragEnd}
         className={styles.swipeContent}

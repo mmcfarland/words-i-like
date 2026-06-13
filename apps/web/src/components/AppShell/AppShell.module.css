@@ -46,6 +46,12 @@
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  /* Don't let the browser re-anchor scrollTop when the header input resizes
+     between its prominent/compact states — that reset is what snapped the page
+     back to the top mid-scroll. */
+  overflow-anchor: none;
+  /* Keep overscroll from chaining to the document (pull-to-refresh jitter). */
+  overscroll-behavior-y: contain;
 }
 
 @keyframes dreamy-drift-random {
