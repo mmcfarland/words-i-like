@@ -1,0 +1,9 @@
+# Words I Like — https://wordsilike.com
+User-agent: *
+Allow: /$
+Allow: /index.html
+Disallow: /shared/
+Disallow: /lists/
+Disallow: /api/
+
+Sitemap: https://wordsilike.com/sitemap.xml

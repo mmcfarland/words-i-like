@@ -2,14 +2,103 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Words I Like</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Primary SEO -->
+    <title>Words I Like — Save & Define the Words You Love</title>
+    <meta
+      name="description"
+      content="Words I Like is a free, offline-first app for building your vocabulary — save words you love, get instant definitions and examples, and organize them into lists."
+    />
+    <meta name="application-name" content="Words I Like" />
+    <meta name="author" content="Words I Like" />
+    <link rel="canonical" href="https://wordsilike.com/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- Icons & PWA -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#8b7ec8" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Words I Like" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Words I Like" />
+    <meta property="og:title" content="Words I Like — Save & Define the Words You Love" />
+    <meta
+      property="og:description"
+      content="A free, offline-first app for building your vocabulary — save words you love, get instant definitions and examples, and organize them into lists."
+    />
+    <meta property="og:url" content="https://wordsilike.com/" />
+    <meta property="og:image" content="https://wordsilike.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Words I Like — save and define the words you love" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Words I Like — Save & Define the Words You Love" />
+    <meta
+      name="twitter:description"
+      content="A free, offline-first app for building your vocabulary — save words you love, get instant definitions and examples, and organize them into lists."
+    />
+    <meta name="twitter:image" content="https://wordsilike.com/og-image.png" />
+    <meta name="twitter:image:alt" content="Words I Like — save and define the words you love" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Words I Like",
+        "url": "https://wordsilike.com/",
+        "description": "A free, offline-first app for building your vocabulary — save words you love, get instant definitions and examples, and organize them into lists.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "browserRequirements": "Requires JavaScript.",
+        "image": "https://wordsilike.com/og-image.png",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Words I Like",
+        "url": "https://wordsilike.com/"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <main
+        style="
+          max-width: 640px;
+          margin: 4rem auto;
+          padding: 0 1.25rem;
+          font-family:
+            system-ui,
+            -apple-system,
+            sans-serif;
+          color: #2a2340;
+          line-height: 1.6;
+        "
+      >
+        <h1 style="font-family: Georgia, 'Times New Roman', serif">Words I Like</h1>
+        <p>
+          Words I Like is a free, offline-first app for building your vocabulary. Save words you love, get instant
+          definitions and examples, and organize them into lists — on any device, even offline.
+        </p>
+        <p>This app needs JavaScript to run. Please enable JavaScript in your browser to start collecting words.</p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
