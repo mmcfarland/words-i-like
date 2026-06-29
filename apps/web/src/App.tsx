@@ -211,6 +211,11 @@ export function App({ initialListId = null }: AppProps) {
     setShowListSelector(true)
   }, [])
 
+  const handleFlashcardsClick = useCallback(() => {
+    const url = filterByListId ? `/flashcards?list=${encodeURIComponent(filterByListId)}` : '/flashcards'
+    window.location.assign(url)
+  }, [filterByListId])
+
   const handleListSelectorClose = useCallback(() => {
     setShowListSelector(false)
   }, [])
@@ -405,6 +410,7 @@ export function App({ initialListId = null }: AppProps) {
       onSignIn={signIn}
       onSignOut={signOut}
       onSearchClick={activateSearch}
+      onFlashcardsClick={handleFlashcardsClick}
       onListClick={handleListClick}
       avatarPopoverMessage={showAvatarPopover && !isAuthenticated ? 'Your words are only saved on this device. Log in to save them to your account.' : null}
       onDismissAvatarPopover={handleDismissAvatarPopover}

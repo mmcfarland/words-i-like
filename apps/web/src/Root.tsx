@@ -1,4 +1,5 @@
 import { App } from './App'
+import { Flashcards } from './pages/Flashcards'
 import { SharedList } from './pages/SharedList'
 import { SharedWord } from './pages/SharedWord'
 
@@ -21,6 +22,11 @@ export function Root() {
   const sharedMatch = path.match(/^\/shared\/([^/]+)/)
   if (sharedMatch) {
     return <SharedList token={decodeRouteSegment(sharedMatch[1])} />
+  }
+
+  if (path.match(/^\/flashcards\/?$/)) {
+    const listParam = new URLSearchParams(window.location.search).get('list')
+    return <Flashcards initialListId={listParam} />
   }
 
   const listMatch = path.match(/^\/lists\/([^/]+)/)

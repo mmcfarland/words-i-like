@@ -15,6 +15,7 @@ interface TopBarProps {
   onSignIn: () => void
   onSignOut: () => void
   onSearchClick?: () => void
+  onFlashcardsClick?: () => void
   onListClick?: () => void
   avatarPopoverMessage?: string | null
   onDismissAvatarPopover?: () => void
@@ -33,6 +34,7 @@ export function TopBar({
   onSignIn,
   onSignOut,
   onSearchClick,
+  onFlashcardsClick,
   onListClick,
   avatarPopoverMessage,
   onDismissAvatarPopover,
@@ -215,6 +217,14 @@ export function TopBar({
             <path d="m21 21-4.35-4.35" />
           </svg>
         </button>
+        {onFlashcardsClick && (
+          <button className={styles.iconButton} aria-label="Flashcards" type="button" onClick={onFlashcardsClick}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="6" width="14" height="11" rx="2" />
+              <path d="M8 3h10a2 2 0 0 1 2 2v9" />
+            </svg>
+          </button>
+        )}
       </div>
     </header>
   )

@@ -38,6 +38,7 @@ interface AppShellProps {
   onSignIn?: () => void
   onSignOut?: () => void
   onSearchClick?: () => void
+  onFlashcardsClick?: () => void
   onListClick?: () => void
   avatarPopoverMessage?: string | null
   onDismissAvatarPopover?: () => void
@@ -57,6 +58,7 @@ export function AppShell({
   onSignIn,
   onSignOut,
   onSearchClick,
+  onFlashcardsClick,
   onListClick,
   avatarPopoverMessage,
   onDismissAvatarPopover,
@@ -109,6 +111,7 @@ export function AppShell({
           onSignIn={onSignIn ?? (() => {})}
           onSignOut={onSignOut ?? (() => {})}
           onSearchClick={onSearchClick}
+          onFlashcardsClick={onFlashcardsClick}
           onListClick={onListClick}
           avatarPopoverMessage={avatarPopoverMessage}
           onDismissAvatarPopover={onDismissAvatarPopover}
