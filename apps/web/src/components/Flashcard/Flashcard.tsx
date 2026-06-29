@@ -61,8 +61,8 @@ export function Flashcard({ text, meanings, pronunciation, flipped, showHint = t
     <div className={styles.scene}>
       <motion.div
         className={styles.dragLayer}
-        style={{ x, opacity, touchAction: 'none' }}
-        drag={swipeEnabled ? 'x' : false}
+        style={{ x, opacity, touchAction: flipped ? 'pan-y' : 'none' }}
+        drag={swipeEnabled && !flipped ? 'x' : false}
         dragSnapToOrigin
         dragElastic={0.7}
         dragMomentum={false}

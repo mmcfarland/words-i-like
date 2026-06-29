@@ -34,11 +34,15 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   overflow-y: auto;
-  pointer-events: none;
+}
+
+.back {
+  pointer-events: auto;
 }
 
 .front {
   text-align: center;
+  pointer-events: none;
 }
 
 .back {
